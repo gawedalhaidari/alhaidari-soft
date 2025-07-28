@@ -1,0 +1,4900 @@
+
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>برنامج تقارير الحركة اليومية - النسخة المحسنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            color: #333;
+            direction: rtl;
+            min-height: 100vh;
+        }
+        
+        /* تخطيط الصفحة */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* الشريط الجانبي */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary), #1a2530);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .sidebar-header p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .dept-list {
+            padding: 15px 0;
+        }
+        
+        .dept-item {
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .dept-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding-right: 30px;
+        }
+        
+        .dept-item.active {
+            background-color: var(--secondary);
+            border-right: 4px solid white;
+        }
+        
+        .dept-item i {
+            font-size: 1.2rem;
+        }
+        
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-pdf {
+            background-color: #d32f2f;
+            color: white;
+        }
+        
+        .btn-edit {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .btn-backup {
+            background-color: #16a085;
+            color: white;
+        }
+        
+        .btn-update {
+            background-color: #8e44ad;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* قسم المدخلات */
+        .input-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            flex: 1;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        
+        .serial-number {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+        
+        /* جدول الحركات */
+        .movements-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .movements-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .movements-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .movements-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .movements-table tr:hover {
+            background-color: #f1f9ff;
+        }
+        
+        .movements-table input, .movements-table select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn.edit {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+        }
+        
+        .action-btn.delete {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+        
+        .action-btn.print {
+            background-color: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+        
+        .action-btn.pdf {
+            background-color: rgba(211, 47, 47, 0.1);
+            color: #d32f2f;
+        }
+        
+        .action-btn.load {
+            background-color: rgba(155, 89, 182, 0.1);
+            color: #8e44ad;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* الملخص المالي */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .summary-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .summary-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .summary-box h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+        
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .total-amount {
+            color: var(--primary);
+        }
+        
+        .required-amount {
+            color: var(--secondary);
+        }
+        
+        .difference-amount.positive {
+            color: var(--success);
+        }
+        
+        .difference-amount.negative {
+            color: var(--danger);
+        }
+        
+        .suspended-total {
+            color: #9b59b6;
+        }
+        
+        .status-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        
+        .status-match {
+            background-color: rgba(39, 174, 96, 0.15);
+            color: var(--success);
+        }
+        
+        .status-excess {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: var(--warning);
+        }
+        
+        .status-shortage {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: var(--danger);
+        }
+        
+        .footer-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* الأقسام الأخرى */
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* نافذة الطباعة */
+        .print-window {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 2000;
+            padding: 20px;
+            overflow: auto;
+        }
+        
+        .print-content {
+            background: white;
+            width: 90%;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .print-header h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .print-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--danger);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 2100;
+        }
+        
+        .print-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+            font-style: italic;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .print-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .print-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .print-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .print-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .print-total-row {
+            background-color: #e8f4ff;
+            font-weight: bold;
+        }
+        
+        .print-table tr.print-highlight {
+            background-color: #fff9e6;
+        }
+        
+        /* فلتر الجدول */
+        .filter-header {
+            background-color: #f0f8ff;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-icon {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0 5px;
+        }
+        
+        .filter-icon:hover {
+            background-color: #2980b9;
+        }
+        
+        /* مؤشر التحميل */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            display: none;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* الرسوم البيانية */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            height: 400px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        /* تحسينات الطباعة */
+        .print-only {
+            display: none;
+        }
+        
+        .filtered-total {
+            background-color: #e8f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .analytics-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .analytics-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .analytics-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .analytics-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        /* إدارة النسخ الاحتياطية */
+        .backup-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border: 1px dashed #3498db;
+        }
+        
+        .backup-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .backup-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-input-btn {
+            background-color: #9b59b6;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .file-input-btn:hover {
+            background-color: #8e44ad;
+        }
+        
+        /* تحسينات الطباعة للصفحات المتعددة */
+        @media print {
+            body * {
+                visibility: hidden;
+            background: white;
+            color: black;
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+        }
+            .print-window, .print-window * {
+                visibility: visible;
+            }
+            .print-window {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: auto;
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .print-content {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                padding: 15px;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .print-close {
+                display: none;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-header h2 span, .dept-item span {
+                display: none;
+            }
+            
+            .sidebar-header {
+                padding: 15px 10px;
+            }
+            
+            .dept-item {
+                justify-content: center;
+                padding: 15px 10px;
+            }
+            
+            .main-content {
+                margin-right: 80px;
+            }
+            
+            .summary-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .print-content {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .analytics-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .backup-actions {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .input-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .summary-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .movements-table {
+                font-size: 0.85rem;
+            }
+            
+            .movements-table th, .movements-table td {
+                padding: 8px 10px;
+            }
+            
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+            
+            .print-table {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* التطويرات الجديدة */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-content h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .login-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .login-content button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            padding: 15px 25px;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 3000;
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        
+        .notification.success { background: #27ae60; }
+        .notification.error { background: #e74c3c; }
+        .notification.warning { background: #f39c12; }
+        .notification.info { background: #3498db; }
+        
+        .attachment-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 5px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .recent-movements li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .exchange-update {
+            background: #e1f5fe;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .attachment-cell {
+            position: relative;
+        }
+        
+        .attachment-btn {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .attachment-input {
+            display: none;
+        }
+        
+        .user-info {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* قسم إدارة المستخدمين الجديد */
+        .user-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+        }
+        
+        .user-form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .user-form-group {
+            flex: 1;
+        }
+        
+        .user-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .password-toggler {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        
+        .password-container {
+            display: flex;
+        }
+        
+        .password-container input {
+            border-radius: 5px 0 0 5px !important;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .user-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .user-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .user-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .role-admin {
+            background-color: #e1f5fe;
+            color: #0288d1;
+        }
+        
+        .role-accountant {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .action-btn.change-password {
+            background-color: rgba(0, 150, 136, 0.1);
+            color: #009688;
+        }
+        
+        /* رسوم بيانية جديدة */
+        .mini-chart {
+            height: 200px;
+            margin-top: 15px;
+        }
+        
+        /* فلتر متقدم */
+        .advanced-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .advanced-filters label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+        
+        /* التعديلات الجديدة */
+        .type-select {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+        
+        .type-select:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+    
+.app-container.collapsed .sidebar {
+    width: 60px;
+}
+.app-container.collapsed .main-content {
+    margin-right: 60px;
+}
+.app-container.collapsed .sidebar-header h2 span,
+.app-container.collapsed .dept-item span,
+.app-container.collapsed .user-info {
+    display: none;
+}
+
+</style>
+</head>
+<body>
+<!-- نافذة تسجيل الدخول -->
+<div class="login-modal" id="login-modal">
+<div class="login-content">
+<h2><i class="fas fa-lock"></i> تسجيل الدخول</h2>
+<input id="login-username" placeholder="اسم المستخدم" type="text"/>
+<input id="login-password" placeholder="كلمة المرور" type="password"/>
+<button id="login-btn">دخول</button>
+</div>
+</div>
+<div class="app-container">
+<!-- الشريط الجانبي -->
+<div class="sidebar">
+<div class="sidebar-header">
+<button id="toggle-sidebar" style="position:absolute;top:10px;left:10px;background:none;border:none;color:white;font-size:20px;cursor:pointer;">
+<i class="fas fa-bars"></i>
+</button>
+<h2><i class="fas fa-chart-line"></i> <span>نظام التقارير المالية</span></h2>
+<p>إدارة الحركة اليومية</p>
+<div class="user-info" id="user-info" style="display:none;">
+<p><i class="fas fa-user"></i> <span id="current-user">مستخدم</span></p>
+<p><i class="fas fa-user-tag"></i> <span id="current-role">محاسب</span></p>
+<button class="btn btn-danger" id="logout-btn" style="margin-top:10px; width:100%;">
+<i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                    </button>
+</div>
+</div>
+<div class="dept-list">
+<div class="dept-item active" data-section="input">
+<i class="fas fa-edit"></i>
+<span>إدارة المدخلات</span>
+</div>
+<div class="dept-item" data-section="reports">
+<i class="fas fa-database"></i>
+<span>التقارير والبيانات</span>
+</div>
+<div class="dept-item" data-section="analytics">
+<i class="fas fa-chart-pie"></i>
+<span>التحليلات الرسومية</span>
+</div>
+<div class="dept-item" data-section="detailed">
+<i class="fas fa-file-alt"></i>
+<span>التقارير التفصيلية</span>
+</div>
+<div class="dept-item" data-section="dashboard">
+<i class="fas fa-tachometer-alt"></i>
+<span>لوحة التحكم</span>
+</div>
+<div class="dept-item" data-section="users" id="users-section-item" style="display: none;">
+<i class="fas fa-users-cog"></i>
+<span>إدارة المستخدمين</span>
+</div>
+<div class="dept-item"><a href="#backup-section"><i class="fas fa-save"></i><span style="color: white;">إدارة النسخ الاحتياطي</span></a></div></div>
+</div>
+<!-- المحتوى الرئيسي -->
+<div class="main-content">
+<!-- قسم المدخلات -->
+<div class="section active" id="input-section">
+<div class="header">
+<h1><i class="fas fa-edit"></i> إدخال الحركة اليومية</h1>
+<div class="header-actions">
+<button class="btn btn-primary" id="print-btn">
+<i class="fas fa-print"></i> طباعة التقرير
+                        </button>
+<button class="btn btn-pdf" id="pdf-btn">
+<i class="fas fa-file-pdf"></i> تصدير PDF
+                        </button>
+<button class="btn btn-success" id="save-btn">
+<i class="fas fa-save"></i> حفظ الحركة
+                        </button>
+<button class="btn btn-primary" id="print-input-table-btn">
+<i class="fas fa-print"></i> طباعة المدخلات
+    </button>
+</div>
+</div>
+<div class="input-section">
+<div class="input-row">
+<div class="input-group">
+<label>اسم الموظف</label>
+<input id="employee-name" placeholder="ادخل اسم الموظف" type="text"/>
+</div>
+<div class="input-group">
+<label>الملاحظات</label>
+<input id="employee-note" placeholder="أدخل ملاحظات" type="text"/>
+</div>
+<div class="input-group">
+<label>تاريخ الحركة</label>
+<input id="movement-date" type="date"/>
+</div>
+<div class="input-group">
+<label>رقم التسلسل</label>
+<div class="serial-number" id="serial-number">1</div>
+</div>
+</div>
+<div id="date-filters" style="margin:20px 0;">
+<label>من تاريخ:</label>
+<input id="startDate" type="date"/>
+<label>إلى تاريخ:</label>
+<input id="endDate" type="date"/>
+<button class="btn btn-primary" onclick="filterByDate()">تصفية</button>
+<button class="btn btn-warning" onclick="setPeriod('month')">هذا الشهر</button>
+<button class="btn btn-warning" onclick="setPeriod('quarter')">هذا الربع</button>
+<button class="btn btn-warning" onclick="setPeriod('year')">هذه السنة</button>
+</div>
+<table class="movements-table">
+<thead>
+<tr>
+<th>#</th>
+<th>المبلغ</th>
+<th>العملة</th>
+<th>البيان التوضيحي</th>
+<th>النوع</th>
+<th>سعر الصرف</th>
+<th>الإجمالي بالريال اليمني</th>
+<th>المرفقات</th>
+<th>الإجراءات</th>
+</tr>
+</thead>
+<tbody id="movements-body">
+<tr>
+<td>1</td>
+<td><input class="amount-input" placeholder="المبلغ" step="0.01" type="number" value="1000"/></td>
+<td>
+<select class="currency-select">
+<option value="YER">ريال يمني</option>
+<option value="SAR">ريال سعودي</option>
+<option value="USD">دولار أمريكي</option>
+</select>
+</td>
+<td><input class="description-input" placeholder="البيان" type="text" value="مصروفات مكتبية"/></td>
+<td>
+<select class="type-select">
+<option value="موظفين">موظفين</option>
+<option value="معلقات">معلقات</option>
+<option value="سدادموردين">سدادموردين</option>
+<option value="مصروفات">مصروفات</option>
+<option value="المدير">المدير</option>
+<option value="فواتير مشتريات">فواتير مشتريات</option>
+<option value="نقديه">نقديه</option>
+<option value="اخرى">اخرى</option>
+<option value="مسسلم معلقات سابقه">مسسلم معلقات سابقه</option>
+</select>
+</td>
+<td><input class="exchange-input" disabled="" step="0.01" type="number" value="1"/></td>
+<td class="total-cell">1000.00</td>
+<td class="attachment-cell">
+<button class="attachment-btn">
+<i class="fas fa-paperclip"></i>
+</button>
+<input accept="image/*,.pdf" class="attachment-input" type="file"/>
+<img class="attachment-preview" style="display:none"/>
+</td>
+<td class="action-buttons">
+<button class="action-btn delete"><i class="fas fa-trash"></i></button>
+</td>
+</tr>
+</tbody>
+</table>
+<button class="btn btn-primary" id="add-row-btn">
+<i class="fas fa-plus"></i> إضافة حركة جديدة
+                    </button>
+<div class="summary-section">
+<div class="summary-box">
+<h3>إجمالي الحركات</h3>
+<div class="summary-value total-amount" id="total-amount">1000.00 ريال</div>
+<p>بالريال اليمني</p>
+</div>
+<div class="summary-box">
+<h3>المبلغ المطلوب</h3>
+<input class="summary-value" id="required-amount" placeholder="ادخل المبلغ" step="0.01" type="number" value="1000"/>
+<p>بالريال اليمني</p>
+</div>
+<div class="summary-box">
+<h3>المبلغ الفارق</h3>
+<div class="summary-value difference-amount" id="difference-amount">0.00 ريال</div>
+<p>الفرق بين الإجمالي والمطلوب</p>
+</div>
+<div class="summary-box">
+<h3>حالة الفارق</h3>
+<div class="status-box status-match" id="status-box">مطابق</div>
+<p>لا يوجد فرق</p>
+</div>
+<!-- حقل إجمالي المسلم من المعلقات -->
+<div class="summary-box">
+<h3>إجمالي المسلم من المعلقات</h3>
+<div class="summary-value suspended-total" id="suspended-total">0.00 ريال</div>
+<p>المعلقات السابقة</p>
+</div>
+</div>
+<div class="footer-actions">
+<button class="btn btn-success" id="confirm-save-btn">
+<i class="fas fa-check-circle"></i> تأكيد الحفظ
+                        </button>
+<button class="btn btn-update" id="update-btn" style="display: none;">
+<i class="fas fa-sync"></i> حفظ التعديلات
+                        </button>
+<button class="btn btn-danger" id="cancel-btn">
+<i class="fas fa-times-circle"></i> إلغاء
+                        </button>
+<button class="btn btn-warning" id="reset-btn">
+<i class="fas fa-redo"></i> تصفير الحقول
+                        </button>
+<button class="btn btn-danger" id="clear-all-btn">
+<i class="fas fa-trash"></i> محو جميع البيانات
+                        </button>
+</div>
+</div>
+</div>
+<!-- قسم التقارير والبيانات -->
+<div class="section" id="reports-section">
+<div class="header">
+<h1><i class="fas fa-database"></i> التقارير والبيانات المدخلة</h1>
+<div class="header-actions">
+<button class="btn btn-primary" id="export-btn">
+<i class="fas fa-file-export"></i> تصدير البيانات
+                        </button>
+<button class="btn btn-primary" id="print-filtered-btn"><i class="fas fa-print"></i> طباعة المفلتر</button>
+<button class="btn btn-primary" id="print-all-btn">
+<i class="fas fa-print"></i> طباعة الكل
+                        </button>
+<button class="btn btn-pdf" id="pdf-all-btn">
+<i class="fas fa-file-pdf"></i> تصدير الكل PDF
+                        </button>
+<button class="btn btn-danger" id="clear-storage-btn">
+<i class="fas fa-trash"></i> مسح جميع البيانات
+                        </button>
+</div>
+</div>
+<div class="input-section">
+<h2 style="margin-bottom: 20px; color: var(--primary);">جميع الحركات المسجلة</h2>
+<div class="advanced-filters">
+<div class="input-group">
+<label>اسم الموظف</label>
+<input id="filterEmployeeName" placeholder="أدخل اسم الموظف" type="text"/>
+</div>
+<div class="input-group">
+<label>من تاريخ</label>
+<input id="filterStartDate" type="date"/>
+</div>
+<div class="input-group">
+<label>إلى تاريخ</label>
+<input id="filterEndDate" type="date"/>
+</div>
+<div class="input-group">
+<label>العملة</label>
+<select id="filterCurrency">
+<option value="">الكل</option>
+<option value="YER">ريال يمني</option>
+<option value="SAR">ريال سعودي</option>
+<option value="USD">دولار أمريكي</option>
+</select>
+</div>
+<div class="input-group">
+<label>البيان</label>
+<input id="filterDescription" placeholder="مثلاً نقد" type="text"/>
+</div>
+<div class="input-group">
+<label>المبلغ أكبر من</label>
+<input id="filterAmountMin" type="number"/>
+</div>
+<div class="input-group">
+<label>المبلغ أصغر من</label>
+<input id="filterAmountMax" type="number"/>
+</div>
+</div>
+<div class="filter-actions">
+<button class="btn btn-primary" onclick="applyAdvancedFilters()">
+<i class="fas fa-filter"></i> تطبيق الفلاتر
+                        </button>
+<button class="btn btn-warning" onclick="resetFilters()">
+<i class="fas fa-redo"></i> إعادة تعيين
+                        </button>
+</div>
+<table class="movements-table" id="saved-movements-table">
+<thead>
+<tr>
+<th>رقم التسلسل</th>
+<th>اسم الموظف</th>
+<th>التاريخ</th>
+<th>الملاحظات</th>
+<th>المبلغ المطلوب منه</th>
+<th>الإجمالي بالريال اليمني</th>
+<!-- العمود الجديد: إجمالي المسلم من المعلقات -->
+<th>إجمالي المسلم من المعلقات</th>
+<th>الحالة</th>
+<th>الإجراءات</th>
+</tr>
+</thead>
+<tbody>
+<!-- سيتم ملؤه بواسطة JavaScript -->
+</tbody>
+</table>
+<!-- قسم إدارة النسخ الاحتياطي -->
+<div class="backup-section">
+<h3><i class="fas fa-database"></i> إدارة النسخ الاحتياطي</h3>
+<div class="backup-actions">
+<button class="btn btn-backup" id="create-backup-btn">
+<i class="fas fa-save"></i> إنشاء نسخة احتياطية
+                            </button>
+<div class="file-input-wrapper">
+<button class="file-input-btn">
+<i class="fas fa-upload"></i> استعادة نسخة احتياطية
+                                </button>
+<input accept=".json" id="restore-backup-input" type="file"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- قسم التحليلات الرسومية -->
+<div class="section" id="analytics-section">
+<div class="header">
+<h1><i class="fas fa-chart-pie"></i> التحليلات الرسومية</h1>
+<div class="header-actions">
+<button class="btn btn-primary" id="print-charts-btn">
+<i class="fas fa-print"></i> طباعة الرسوم البيانية
+                        </button>
+<button class="btn btn-pdf" id="export-charts-btn">
+<i class="fas fa-file-pdf"></i> تصدير PDF
+                        </button>
+<button class="btn btn-warning" id="refresh-charts-btn">
+<i class="fas fa-sync"></i> تحديث الرسوم
+                        </button>
+</div>
+</div>
+<div class="input-section">
+<h2 style="margin-bottom: 20px; color: var(--primary);">تحليل البيانات المالية</h2>
+<div class="analytics-summary">
+<div class="analytics-card">
+<h3>الموظف الأكثر حركة</h3>
+<div class="analytics-value" id="top-employee">أحمد محمد</div>
+<p>أعلى إجمالي حركات</p>
+</div>
+<div class="analytics-card">
+<h3>إجمالي الحركة الكلية</h3>
+<div class="analytics-value" id="total-movements">12,450 ريال</div>
+<p>مجموع كل الحركات</p>
+</div>
+<div class="analytics-card">
+<h3>البيان الأكثر تكرارًا</h3>
+<div class="analytics-value" id="top-description">مصروفات مكتبية</div>
+<p>البيان الأكثر استخدامًا</p>
+</div>
+</div>
+<div class="charts-grid">
+<div class="chart-container">
+<h3 class="chart-title">توزيع المبالغ حسب العملة</h3>
+<canvas id="currency-chart"></canvas>
+</div>
+<div class="chart-container">
+<h3 class="chart-title">مقارنة الإجمالي والمطلوب</h3>
+<canvas id="comparison-chart"></canvas>
+</div>
+<div class="chart-container">
+<h3 class="chart-title">الحركات حسب الموظفين</h3>
+<canvas id="employee-chart"></canvas>
+</div>
+<div class="chart-container">
+<h3 class="chart-title">البيانات الأكثر تكرارًا</h3>
+<canvas id="description-chart"></canvas>
+</div>
+</div>
+</div>
+</div>
+<!-- قسم التقارير التفصيلية -->
+<div class="section" id="detailed-section">
+<div class="header">
+<h1><i class="fas fa-file-alt"></i> التقارير التفصيلية</h1>
+<div class="header-actions">
+<button class="btn btn-primary" id="print-detailed-btn">
+<i class="fas fa-print"></i> طباعة البيانات المفلترة
+                        </button>
+<button class="btn btn-pdf" id="pdf-detailed-btn">
+<i class="fas fa-file-pdf"></i> تصدير PDF
+                        </button>
+<button class="btn btn-warning" id="reset-detailed-btn">
+<i class="fas fa-redo"></i> إعادة تعيين الفلتر
+                        </button>
+</div>
+</div>
+<div class="input-section">
+<div class="filter-header">
+<h3>أدوات الفلترة:</h3>
+<div>
+<span class="filter-icon" data-filter="employee">
+<i class="fas fa-user"></i> اسم الموظف
+                            </span>
+<span class="filter-icon" data-filter="date">
+<i class="fas fa-calendar"></i> التاريخ
+                            </span>
+<span class="filter-icon" data-filter="amount">
+<i class="fas fa-money-bill"></i> المبلغ
+                            </span>
+<span class="filter-icon" data-filter="currency">
+<i class="fas fa-coins"></i> العملة
+                            </span>
+<span class="filter-icon" data-filter="description">
+<i class="fas fa-comment"></i> البيان
+                            </span>
+<span class="filter-icon" data-filter="exchange">
+<i class="fas fa-exchange-alt"></i> سعر الصرف
+                            </span>
+<span class="filter-icon" data-filter="total">
+<i class="fas fa-calculator"></i> الإجمالي
+                            </span>
+</div>
+</div>
+<div id="filter-controls">
+<!-- سيتم إضافة عناصر التحكم في الفلترة هنا -->
+</div>
+<h2 style="margin: 20px 0; color: var(--primary);">التقارير التفصيلية</h2>
+<div style="margin:10px 0;">
+<label style="display:block;font-weight:600;margin-bottom:6px;">فلترة بالنوع <i class="fas fa-tags"></i></label>
+<input id="filterTypeDetailed" placeholder="اكتب جزء من النوع (مثلاً: موظفين، حوالات...)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" type="text"/>
+</div>
+<table class="movements-table" id="detailed-reports-table">
+<thead>
+<tr>
+<th>اسم الموظف</th>
+<th>تاريخ الحركه</th>
+<th>الملاحظات</th>
+<th>المبلغ</th>
+<th>العمله</th>
+<th>البيان التوضيحي</th>
+<th>النوع</th>
+<th>سعر الصرف</th>
+<th>الاجمالي بالريال اليمني</th>
+</tr>
+</thead>
+<tbody>
+<!-- سيتم ملؤه بواسطة JavaScript -->
+</tbody>
+</table>
+<div class="filtered-total" id="filtered-total-container">
+                        إجمالي المبالغ المفلترة: <span id="filtered-total">0.00</span> ريال يمني
+                    </div>
+</div>
+</div>
+<!-- قسم لوحة التحكم الجديد -->
+<div class="section" id="dashboard-section">
+<div class="header">
+<h1><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+<div class="header-actions">
+<button class="btn btn-warning" id="update-rates-btn">
+<i class="fas fa-sync"></i> تحديث أسعار الصرف
+                        </button>
+</div>
+</div>
+<div class="input-section">
+<div id="dashboard-content">
+<!-- سيتم ملؤه بواسطة JavaScript -->
+</div>
+</div>
+</div>
+<!-- قسم إدارة المستخدمين الجديد -->
+<div class="section" id="users-section">
+<div class="header">
+<h1><i class="fas fa-users-cog"></i> إدارة المستخدمين</h1>
+<div class="header-actions">
+<button class="btn btn-primary" id="add-user-btn">
+<i class="fas fa-user-plus"></i> إضافة مستخدم جديد
+                        </button>
+</div>
+</div>
+<div class="input-section">
+<div id="user-form-container" style="display: none;">
+<div class="user-form">
+<h3><i class="fas fa-user-edit"></i> <span id="user-form-title">إضافة مستخدم جديد</span></h3>
+<div class="user-form-row">
+<div class="user-form-group">
+<label>اسم المستخدم</label>
+<input id="user-username" placeholder="اسم المستخدم" type="text"/>
+</div>
+<div class="user-form-group">
+<label>الاسم الكامل</label>
+<input id="user-fullname" placeholder="الاسم الكامل" type="text"/>
+</div>
+</div>
+<div class="user-form-row">
+<div class="user-form-group">
+<label>كلمة المرور</label>
+<div class="password-container">
+<input id="user-password" placeholder="كلمة المرور" type="password"/>
+<div class="password-toggler" id="password-toggler">
+<i class="fas fa-eye"></i>
+</div>
+</div>
+</div>
+<div class="user-form-group">
+<label>تأكيد كلمة المرور</label>
+<input id="user-confirm-password" placeholder="تأكيد كلمة المرور" type="password"/>
+</div>
+</div>
+<div class="user-form-row">
+<div class="user-form-group">
+<label>الدور</label>
+<select id="user-role">
+<option value="admin">مدير النظام</option>
+<option value="accountant">محاسب</option>
+</select>
+</div>
+</div>
+<div class="user-form-row">
+<button class="btn btn-success" id="save-user-btn">
+<i class="fas fa-save"></i> حفظ المستخدم
+                                </button>
+<button class="btn btn-danger" id="cancel-user-btn">
+<i class="fas fa-times"></i> إلغاء
+                                </button>
+</div>
+</div>
+</div>
+<table class="user-table">
+<thead>
+<tr>
+<th>اسم المستخدم</th>
+<th>الاسم الكامل</th>
+<th>الدور</th>
+<th>تاريخ الإنشاء</th>
+<th>الإجراءات</th>
+</tr>
+</thead>
+<tbody id="users-table-body">
+<!-- سيتم ملؤه بواسطة JavaScript -->
+</tbody>
+</table>
+</div>
+</div>
+<div class="content-section" id="manual-backup-section" style="display:none;">
+<h2>🛡️ إدارة النسخ الاحتياطي</h2>
+<p>قم بإنشاء نسخة احتياطية يدوية أو استعادة بياناتك عند الحاجة.</p>
+<button class="btn btn-success" onclick="manualBackup()">💾 إنشاء نسخة احتياطية</button>
+<input id="manualRestoreInput" onchange="manualRestore(event)" style="display:none" type="file"/>
+<button class="btn btn-info" onclick="document.getElementById('manualRestoreInput').click()">📂 استعادة نسخة احتياطية</button>
+</div>
+</div>
+</div>
+<!-- نافذة الطباعة -->
+<div class="print-window" id="print-window">
+<div class="print-close" id="print-close">
+<i class="fas fa-times"></i>
+</div>
+<div class="print-content" id="print-content">
+<!-- سيتم ملؤه بواسطة JavaScript -->
+</div>
+</div>
+<!-- مؤشر التحميل -->
+<div class="loading-overlay" id="loading-overlay">
+<div class="loading-spinner"></div>
+</div>
+<script>
+        // ======== نظام المصادقة والصلاحيات ========
+        function initUsers() {
+            if (!localStorage.getItem("users")) {
+                const initialUsers = [
+                    { id: 1, username: "admin", password: "admin123", role: "admin", fullName: "مدير النظام", createdAt: new Date().toISOString() },
+                    { id: 2, username: "accountant", password: "accountant123", role: "accountant", fullName: "محاسب", createdAt: new Date().toISOString() }
+                ];
+                localStorage.setItem("users", JSON.stringify(initialUsers));
+            }
+        }
+        
+        function login(username, password) {
+            const users = JSON.parse(localStorage.getItem("users") || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                localStorage.setItem("currentUser", JSON.stringify(user));
+                return true;
+            }
+            return false;
+        }
+        
+        function logout() {
+            localStorage.removeItem("currentUser");
+            showLoginModal();
+            document.getElementById('user-info').style.display = 'none';
+        }
+        
+        function checkPermission(requiredRole) {
+            const user = JSON.parse(localStorage.getItem("currentUser"));
+            return user && (user.role === "admin" || user.role === requiredRole);
+        }
+        
+        function showLoginModal() {
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+        
+        function hideLoginModal() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+        
+        function updateUserInfo() {
+            const user = JSON.parse(localStorage.getItem("currentUser"));
+            if (user) {
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('current-user').textContent = user.username;
+                document.getElementById('current-role').textContent = 
+                    user.role === "admin" ? "مدير النظام" : "محاسب";
+                    
+                // إظهار/إخفاء قسم إدارة المستخدمين
+                const usersSectionItem = document.getElementById('users-section-item');
+                if (user.role === "admin") {
+                    usersSectionItem.style.display = "flex";
+                } else {
+                    usersSectionItem.style.display = "none";
+                    document.getElementById('users-section').style.display = "none";
+                }
+            }
+        }
+        
+        // ======== نظام الإشعارات ========
+        function showNotification(message, type = "success") {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // ======== ربط أسعار الصرف بAPI ========
+        async function updateExchangeRates() {
+            try {
+                // في الواقع: استبدل الرابط بAPI حقيقي
+                // const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+                // المحاكاة:
+                const mockResponse = {
+                    "rates": {
+                        "YER": 250,
+                        "SAR": 3.75,
+                        "USD": 1
+                    }
+                };
+                
+                // البيانات الحقيقية: const data = await response.json();
+                const data = mockResponse;
+                
+                localStorage.setItem("exchangeRates", JSON.stringify({
+                    USD: data.rates.YER,
+                    SAR: data.rates.YER / data.rates.SAR
+                }));
+                
+                showNotification("تم تحديث أسعار الصرف بنجاح", "success");
+                return true;
+            } catch (error) {
+                console.error("فشل تحديث أسعار الصرف:", error);
+                showNotification("فشل تحديث أسعار الصرف", "error");
+                return false;
+            }
+        }
+        
+        function getExchangeRate(currency) {
+            const rates = JSON.parse(localStorage.getItem("exchangeRates")) || {
+                USD: 553,
+                SAR: 140,
+                YER: 1
+            };
+            return rates[currency];
+        }
+        
+        // ======== إرفاق المستندات ========
+        function saveAttachment(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) resolve(null);
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const attachments = JSON.parse(localStorage.getItem("attachments")) || {};
+                    const id = Date.now().toString();
+                    attachments[id] = {
+                        name: file.name,
+                        type: file.type,
+                        data: e.target.result.split(",")[1]
+                    };
+                    localStorage.setItem("attachments", JSON.stringify(attachments));
+                    resolve(id);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function showAttachment(id) {
+            const attachments = JSON.parse(localStorage.getItem("attachments")) || {};
+            const attachment = attachments[id];
+            if (attachment) {
+                const url = `data:${attachment.type};base64,${attachment.data}`;
+                window.open(url, "_blank");
+            }
+        }
+        
+        // ======== لوحة التحكم ========
+        function createDashboard() {
+            const savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            
+            // إحصائيات أساسية
+            const totalAmount = savedMovements.reduce((sum, m) => sum + m.totalAmount, 0);
+            const employees = [...new Set(savedMovements.map(m => m.employeeName))];
+            const recentMovements = savedMovements.slice(-5).reverse();
+            
+            return `
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-coins"></i> إجمالي الحركات</h3>
+                        <div class="dashboard-value">${totalAmount.toLocaleString('ar')} ريال</div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-users"></i> عدد الموظفين</h3>
+                        <div class="dashboard-value">${employees.length}</div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-exchange-alt"></i> أسعار الصرف الحالية</h3>
+                        <div class="exchange-update">
+                            <p>الدولار: ${getExchangeRate('USD')} ريال يمني</p>
+                            <p>الريال السعودي: ${getExchangeRate('SAR')} ريال يمني</p>
+                            <p style="margin-top: 10px; font-style: italic;">آخر تحديث: ${new Date().toLocaleDateString('ar-YE')}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card" style="grid-column: span 2;">
+                        <h3><i class="fas fa-history"></i> آخر الحركات</h3>
+                        <ul class="recent-movements">
+                            ${recentMovements.length > 0 ? recentMovements.map(m => `
+                                <li>
+                                    <span>${m.employeeName} (${m.date})</span>
+                                    <span>${m.totalAmount.toLocaleString('ar')} ريال</span>
+                                </li>
+                            `).join('') : '<p>لا توجد حركات مسجلة</p>'}
+                        </ul>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-bar"></i> توزيع المبالغ حسب العملة</h3>
+                        <div class="mini-chart">
+                            <canvas id="dashboard-currency-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-line"></i> حركة الإدخال خلال الشهر</h3>
+                        <div class="mini-chart">
+                            <canvas id="dashboard-activity-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ======== تعديلات على الشريط الجانبي ========
+        function updateSidebar() {
+            const user = JSON.parse(localStorage.getItem("currentUser"));
+            if (user) {
+                updateUserInfo();
+            }
+        }
+        
+        // ======== تعديلات على جدول الحركات لإضافة المرفقات ========
+        function addAttachmentField(row) {
+            const attachmentCell = document.createElement('td');
+            attachmentCell.className = 'attachment-cell';
+            attachmentCell.innerHTML = `
+                <button class="attachment-btn">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="file" class="attachment-input" accept="image/*,.pdf" style="display:none">
+                <img class="attachment-preview" style="display:none">
+            `;
+            row.insertBefore(attachmentCell, row.cells[6]);
+            
+            const attachmentBtn = attachmentCell.querySelector('.attachment-btn');
+            const attachmentInput = attachmentCell.querySelector('.attachment-input');
+            const attachmentPreview = attachmentCell.querySelector('.attachment-preview');
+            
+            attachmentBtn.addEventListener('click', () => attachmentInput.click());
+            
+            attachmentInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    if (file.size > 2 * 1024 * 1024) {
+                        showNotification("حجم الملف يجب أن يكون أقل من 2MB", "error");
+                        return;
+                    }
+                    
+                    // معاينة الصورة
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            attachmentPreview.src = e.target.result;
+                            attachmentPreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        attachmentPreview.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        // ======== إدارة المستخدمين ========
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem("users") || []);
+            const tableBody = document.getElementById('users-table-body');
+            tableBody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const createdAt = new Date(user.createdAt).toLocaleDateString('ar-YE');
+                
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.fullName}</td>
+                    <td>
+                        <span class="role-badge ${user.role === 'admin' ? 'role-admin' : 'role-accountant'}">
+                            ${user.role === 'admin' ? 'مدير النظام' : 'محاسب'}
+                        </span>
+                    </td>
+                    <td>${createdAt}</td>
+                    <td class="user-actions">
+                        <button class="action-btn edit" data-id="${user.id}"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete" data-id="${user.id}"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn change-password" data-id="${user.id}"><i class="fas fa-key"></i></button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // إضافة أحداث للأزرار
+            document.querySelectorAll('#users-table-body .edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editUser(id);
+                });
+            });
+            
+            document.querySelectorAll('#users-table-body .delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteUser(id);
+                });
+            });
+            
+            document.querySelectorAll('#users-table-body .change-password').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    changePassword(id);
+                });
+            });
+        }
+        
+        function showUserForm(title = 'إضافة مستخدم جديد') {
+            const formContainer = document.getElementById('user-form-container');
+            formContainer.style.display = 'block';
+            document.getElementById('user-form-title').textContent = title;
+            document.getElementById('save-user-btn').setAttribute('data-mode', 'add');
+            document.getElementById('save-user-btn').setAttribute('data-id', '');
+            
+            // تنظيف الحقول
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-fullname').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-confirm-password').value = '';
+            document.getElementById('user-role').value = 'accountant';
+        }
+        
+        function editUser(id) {
+            const users = JSON.parse(localStorage.getItem("users") || []);
+            const user = users.find(u => u.id == id);
+            
+            if (!user) {
+                showNotification("المستخدم غير موجود", "error");
+                return;
+            }
+            
+            const formContainer = document.getElementById('user-form-container');
+            formContainer.style.display = 'block';
+            document.getElementById('user-form-title').textContent = `تعديل المستخدم: ${user.username}`;
+            document.getElementById('save-user-btn').setAttribute('data-mode', 'edit');
+            document.getElementById('save-user-btn').setAttribute('data-id', id);
+            
+            // تعبئة الحقول
+            document.getElementById('user-username').value = user.username;
+            document.getElementById('user-fullname').value = user.fullName;
+            document.getElementById('user-role').value = user.role;
+            
+            // إخفاء حقول كلمة المرور
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-confirm-password').value = '';
+        }
+        
+        function changePassword(id) {
+            const users = JSON.parse(localStorage.getItem("users") || []);
+            const user = users.find(u => u.id == id);
+            
+            if (!user) {
+                showNotification("المستخدم غير موجود", "error");
+                return;
+            }
+            
+            const formContainer = document.getElementById('user-form-container');
+            formContainer.style.display = 'block';
+            document.getElementById('user-form-title').textContent = `تغيير كلمة المرور: ${user.username}`;
+            document.getElementById('save-user-btn').setAttribute('data-mode', 'password');
+            document.getElementById('save-user-btn').setAttribute('data-id', id);
+            
+            // تعبئة الحقول
+            document.getElementById('user-username').value = user.username;
+            document.getElementById('user-fullname').value = user.fullName;
+            document.getElementById('user-role').value = user.role;
+            
+            // إظهار حقول كلمة المرور فقط
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-confirm-password').value = '';
+        }
+        
+        function saveUser() {
+            const mode = document.getElementById('save-user-btn').getAttribute('data-mode');
+            const id = document.getElementById('save-user-btn').getAttribute('data-id');
+            const username = document.getElementById('user-username').value.trim();
+            const fullName = document.getElementById('user-fullname').value.trim();
+            const password = document.getElementById('user-password').value;
+            const confirmPassword = document.getElementById('user-confirm-password').value;
+            const role = document.getElementById('user-role').value;
+            
+            // التحقق من الحقول المطلوبة
+            if (!username) {
+                showNotification("يرجى إدخال اسم المستخدم", "error");
+                return;
+            }
+            
+            if (!fullName) {
+                showNotification("يرجى إدخال الاسم الكامل", "error");
+                return;
+            }
+            
+            // التحقق من كلمة المرور في حالة الإضافة أو تغيير كلمة المرور
+            if (mode === 'add' || mode === 'password') {
+                if (!password) {
+                    showNotification("يرجى إدخال كلمة المرور", "error");
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showNotification("كلمة المرور يجب أن تكون 6 أحرف على الأقل", "error");
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    showNotification("كلمة المرور غير متطابقة", "error");
+                    return;
+                }
+            }
+            
+            let users = JSON.parse(localStorage.getItem("users") || []);
+            
+            // التحقق من عدم تكرار اسم المستخدم
+            if (mode === 'add') {
+                const userExists = users.some(u => u.username === username);
+                if (userExists) {
+                    showNotification("اسم المستخدم موجود مسبقاً", "error");
+                    return;
+                }
+            }
+            
+            if (mode === 'add') {
+                // إضافة مستخدم جديد
+                const newUser = {
+                    id: Date.now(),
+                    username,
+                    password,
+                    role,
+                    fullName,
+                    createdAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem("users", JSON.stringify(users));
+                showNotification("تم إضافة المستخدم بنجاح", "success");
+                
+            } else if (mode === 'edit') {
+                // تعديل المستخدم
+                const userIndex = users.findIndex(u => u.id == id);
+                if (userIndex !== -1) {
+                    users[userIndex].username = username;
+                    users[userIndex].fullName = fullName;
+                    users[userIndex].role = role;
+                    
+                    localStorage.setItem("users", JSON.stringify(users));
+                    showNotification("تم تحديث بيانات المستخدم بنجاح", "success");
+                }
+                
+            } else if (mode === 'password') {
+                // تغيير كلمة المرور
+                const userIndex = users.findIndex(u => u.id == id);
+                if (userIndex !== -1) {
+                    users[userIndex].password = password;
+                    localStorage.setItem("users", JSON.stringify(users));
+                    showNotification("تم تغيير كلمة المرور بنجاح", "success");
+                }
+            }
+            
+            // إعادة تحميل الجدول وإخفاء النموذج
+            loadUsers();
+            document.getElementById('user-form-container').style.display = 'none';
+        }
+        
+        function deleteUser(id) {
+            const users = JSON.parse(localStorage.getItem("users") || []);
+            const user = users.find(u => u.id == id);
+            
+            if (!user) {
+                showNotification("المستخدم غير موجود", "error");
+                return;
+            }
+            
+            // منع حذف المستخدم الحالي
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (currentUser && currentUser.id == id) {
+                showNotification("لا يمكن حذف المستخدم الحالي", "error");
+                return;
+            }
+            
+            if (confirm(`هل أنت متأكد أنك تريد حذف المستخدم "${user.username}"؟`)) {
+                const updatedUsers = users.filter(u => u.id != id);
+                localStorage.setItem("users", JSON.stringify(updatedUsers));
+                showNotification("تم حذف المستخدم بنجاح", "success");
+                loadUsers();
+            }
+        }
+        
+        // ======== إصلاح نظام الفلترة ========
+        function applyAdvancedFilters() {
+            const employeeName = document.getElementById('filterEmployeeName').value.toLowerCase();
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const currency = document.getElementById('filterCurrency').value;
+            const description = document.getElementById('filterDescription').value.toLowerCase();
+            const amountMin = parseFloat(document.getElementById('filterAmountMin').value) || 0;
+            const amountMax = parseFloat(document.getElementById('filterAmountMax').value) || Number.MAX_SAFE_INTEGER;
+            
+            const savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            const filteredMovements = savedMovements.filter(movement => {
+                // فلترة اسم الموظف
+                if (employeeName && !movement.employeeName.toLowerCase().includes(employeeName)) {
+                    return false;
+                }
+                
+                // فلترة التاريخ
+                if (startDate && movement.date < startDate) return false;
+                if (endDate && movement.date > endDate) return false;
+                
+                // فلترة العملة
+                if (currency) {
+                    const hasCurrency = movement.movements.some(item => item.currency === currency);
+                    if (!hasCurrency) return false;
+                }
+                
+                // فلترة البيان
+                if (description) {
+                    const hasDescription = movement.movements.some(item => 
+                        item.description.toLowerCase().includes(description));
+                    if (!hasDescription) return false;
+                }
+                
+                // فلترة المبلغ
+                if (amountMin > 0 || amountMax < Number.MAX_SAFE_INTEGER) {
+                    const inAmountRange = movement.movements.some(item => 
+                        item.amount >= amountMin && item.amount <= amountMax);
+                    if (!inAmountRange) return false;
+                }
+                
+                return true;
+            });
+            
+            // إعادة تحميل الجدول مع البيانات المفلترة
+            loadSavedMovements(filteredMovements);
+        }
+        
+        function resetFilters() {
+            document.getElementById('filterEmployeeName').value = '';
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterCurrency').value = '';
+            document.getElementById('filterDescription').value = '';
+            document.getElementById('filterAmountMin').value = '';
+            document.getElementById('filterAmountMax').value = '';
+            
+            // إعادة تحميل جميع البيانات
+            loadSavedMovements();
+        }
+        
+        // ======== التهيئة ========
+        document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة المستخدمين
+            initUsers();
+            
+            // التحقق من تسجيل الدخول
+            if (!localStorage.getItem("currentUser")) {
+                showLoginModal();
+            } else {
+                hideLoginModal();
+                updateSidebar();
+            }
+            
+            // حدث تسجيل الدخول
+            document.getElementById('login-btn').addEventListener('click', function() {
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                
+                if (login(username, password)) {
+                    hideLoginModal();
+                    updateSidebar();
+                    showNotification("تم تسجيل الدخول بنجاح", "success");
+                } else {
+                    showNotification("اسم المستخدم أو كلمة المرور غير صحيحة", "error");
+                }
+            });
+            
+            // حدث تسجيل الخروج
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            
+            // تحديث أسعار الصرف
+            if (!localStorage.getItem("exchangeRates")) {
+                updateExchangeRates();
+            }
+            
+            // تحديث لوحة التحكم
+            document.querySelector('[data-section="dashboard"]').addEventListener('click', function() {
+                document.getElementById('dashboard-content').innerHTML = createDashboard();
+                
+                // إنشاء الرسوم البيانية للوحة التحكم
+                generateDashboardCharts();
+            });
+            
+            // حدث تحديث الأسعار
+            document.getElementById('update-rates-btn').addEventListener('click', function() {
+                showNotification("جارٍ تحديث أسعار الصرف...", "info");
+                updateExchangeRates();
+            });
+            
+            // إدارة المستخدمين
+            document.querySelector('[data-section="users"]').addEventListener('click', function() {
+                loadUsers();
+            });
+            
+            // إضافة مستخدم جديد
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                showUserForm();
+            });
+            
+            // حفظ المستخدم
+            document.getElementById('save-user-btn').addEventListener('click', saveUser);
+            
+            // إلغاء إضافة/تعديل المستخدم
+            document.getElementById('cancel-user-btn').addEventListener('click', function() {
+                document.getElementById('user-form-container').style.display = 'none';
+            });
+            
+            // تبديل رؤية كلمة المرور
+            document.getElementById('password-toggler').addEventListener('click', function() {
+                const passwordInput = document.getElementById('user-password');
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    passwordInput.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            });
+            
+            // ... بقية التهيئة الأصلية ...
+            initApp();
+        });
+        
+        // ======== التهيئة الأصلية ========
+        // متغير لتخزين معرف الحركة الحالية للتعديل
+        let currentEditId = null;
+        let lastDeletedMovement = null;
+
+        // تهيئة التطبيق
+        function initApp() {
+            // تعيين تاريخ اليوم كافتراضي
+            document.getElementById('movement-date').valueAsDate = new Date();
+            
+            // تهيئة الرقم التسلسلي من localStorage
+            const nextId = localStorage.getItem('nextId') || 1;
+            document.getElementById('serial-number').textContent = nextId;
+            
+            // إضافة أحداث للصف الأول
+            document.querySelectorAll('#movements-body tr').forEach(row => {
+                addRowEvents(row);
+            });
+            
+            // تحميل الحركات المحفوظة عند الدخول إلى قسم التقارير
+            document.querySelector('[data-section="reports"]').addEventListener('click', function() {
+                loadSavedMovements();
+            });
+            
+            // تحميل التقارير التفصيلية عند الدخول إلى القسم
+            document.querySelector('[data-section="detailed"]').addEventListener('click', function() {
+                loadDetailedReports();
+                // ربط زر طباعة البيانات المفلترة هنا أيضًا
+                document.getElementById('print-detailed-btn').addEventListener('click', printDetailedReports);
+            });
+            
+            // تحميل الرسوم البيانية عند الدخول إلى القسم
+            document.querySelector('[data-section="analytics"]').addEventListener('click', function() {
+                generateCharts();
+                updateAnalyticsSummary();
+            });
+            
+            // إضافة أحداث لأيقونات الفلترة
+            document.querySelectorAll('.filter-icon').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const filterType = this.getAttribute('data-filter');
+                    addFilterControl(filterType);
+                });
+            });
+            
+            // إعادة تعيين الفلتر
+            document.getElementById('reset-detailed-btn').addEventListener('click', resetDetailedFilter);
+            
+            // تحميل البيانات الأولية
+            if (!localStorage.getItem('movements') || localStorage.getItem('movements') === '[]') {
+                localStorage.setItem('movements', JSON.stringify(sampleData));
+                localStorage.setItem('nextId', sampleData.length + 1);
+            }
+            
+            // إضافة أحداث النسخ الاحتياطي
+            document.getElementById('create-backup-btn').addEventListener('click', createBackup);
+            document.getElementById('restore-backup-input').addEventListener('change', restoreBackup);
+            
+            // إضافة أحداث للأزرار الجديدة
+            document.getElementById('print-all-btn').addEventListener('click', printAllMovements);
+            document.getElementById('clear-all-btn').addEventListener('click', clearAllMovements);
+            document.getElementById('clear-storage-btn').addEventListener('click', clearAllMovements);
+            
+            // ربط أحداث الأزرار الجديدة للتحديث
+            document.getElementById('update-btn').addEventListener('click', updateMovement);
+            document.getElementById('cancel-btn').addEventListener('click', resetForm);
+            document.getElementById('reset-btn').addEventListener('click', resetForm);
+            
+            // ربط أحداث الأزرار الأصلية
+            document.getElementById('print-btn').addEventListener('click', printInputData);
+            document.getElementById('save-btn').addEventListener('click', function() {
+                saveMovement();
+                alert('✅ تم حفظ الحركة بنجاح');
+            });
+            document.getElementById('confirm-save-btn').addEventListener('click', function() {
+                const movement = saveMovement();
+                alert(`✅ تم حفظ الحركة رقم ${movement.id} بنجاح`);
+                resetForm();
+            });
+            document.getElementById('add-row-btn').addEventListener('click', addNewRow);
+            
+            // ربط زر طباعة البيانات المفلترة
+            document.getElementById('print-detailed-btn').addEventListener('click', printDetailedReports);
+            
+            // إصلاح: ربط زر طباعة المفلتر
+            document.getElementById('print-filtered-btn').addEventListener('click', printFilteredMovements);
+            
+            // إصلاح: ربط زر تصدير الكل PDF
+            document.getElementById('pdf-all-btn').addEventListener('click', exportAllToPDF);
+        }
+        
+        // تغيير الأقسام في الشريط الجانبي
+        document.querySelectorAll('.dept-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // إزالة النشاط من جميع الأقسام
+                document.querySelectorAll('.dept-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+                
+                // إضافة النشاط للقسم المحدد
+                this.classList.add('active');
+                
+                // إخفاء جميع أقسام المحتوى
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // إظهار قسم المحتوى المطلوب
+                const sectionId = this.getAttribute('data-section') + '-section';
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+        
+        // إضافة صف جديد للحركات
+        function addNewRow() {
+            const tableBody = document.getElementById('movements-body');
+            const rowCount = tableBody.querySelectorAll('tr').length;
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${rowCount + 1}</td>
+                <td><input type="number" class="amount-input" placeholder="المبلغ" step="0.01"></td>
+                <td>
+                    <select class="currency-select">
+                        <option value="YER">ريال يمني</option>
+                        <option value="SAR">ريال سعودي</option>
+                        <option value="USD">دولار أمريكي</option>
+                    </select>
+                </td>
+                <td><input type="text" class="description-input" placeholder="البيان"></td>
+                <td>
+                    <select class="type-select">
+                     <option value="موظفين">موظفين</option>
+        <option value="معلقات">معلقات</option>
+        <option value="سدادموردين">سدادموردين</option>
+        <option value="مصروفات">مصروفات</option>
+        <option value="المدير">المدير</option>
+        <option value="فواتير مشتريات">فواتير مشتريات</option>
+        <option value="نقديه">نقديه</option>
+        <option value="اخرى">اخرى</option>
+        <option value="مسسلم معلقات سابقه">مسسلم معلقات سابقه</option>
+                    </select>
+                </td>
+                <td><input type="number" class="exchange-input" value="1" step="0.01" disabled></td>
+                <td class="total-cell">0.00</td>
+                <td class="attachment-cell">
+                    <button class="attachment-btn">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="file" class="attachment-input" accept="image/*,.pdf">
+                    <img class="attachment-preview" style="display:none">
+                </td>
+                <td class="action-buttons">
+                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            
+            tableBody.appendChild(newRow);
+            
+            // إضافة أحداث للصف الجديد
+            addRowEvents(newRow);
+            
+            // إضافة أحداث لحقل المرفقات
+            const attachmentBtn = newRow.querySelector('.attachment-btn');
+            const attachmentInput = newRow.querySelector('.attachment-input');
+            const attachmentPreview = newRow.querySelector('.attachment-preview');
+            
+            attachmentBtn.addEventListener('click', () => attachmentInput.click());
+            
+            attachmentInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    if (file.size > 2 * 1024 * 1024) {
+                        showNotification("حجم الملف يجب أن يكون أقل من 2MB", "error");
+                        return;
+                    }
+                    
+                    // معاينة الصورة
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            attachmentPreview.src = e.target.result;
+                            attachmentPreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        attachmentPreview.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        // تحديث سعر الصرف عند تغيير العملة
+        function addRowEvents(row) {
+            const currencySelect = row.querySelector('.currency-select');
+            const exchangeInput = row.querySelector('.exchange-input');
+            const amountInput = row.querySelector('.amount-input');
+            
+            currencySelect.addEventListener('change', function() {
+                if (this.value === 'YER') {
+                    exchangeInput.disabled = true;
+                    exchangeInput.value = '1';
+                } else if (this.value === 'SAR') {
+                    exchangeInput.disabled = false;
+                    exchangeInput.value = '140';
+                } else if (this.value === 'USD') {
+                    exchangeInput.disabled = false;
+                    exchangeInput.value = '553';
+                }
+                calculateTotal(row);
+                updateSummary();
+            });
+            
+            exchangeInput.addEventListener('input', function() {
+                calculateTotal(row);
+                updateSummary();
+            });
+            
+            amountInput.addEventListener('input', function() {
+                calculateTotal(row);
+                updateSummary();
+            });
+            
+            // حدث لحذف الصف
+            const deleteBtn = row.querySelector('.delete');
+            deleteBtn.addEventListener('click', function() {
+                row.remove();
+                updateRowNumbers();
+                updateSummary();
+            });
+        }
+        
+        // حساب الإجمالي لكل صف
+        function calculateTotal(row) {
+            const amountInput = row.querySelector('.amount-input');
+            const exchangeInput = row.querySelector('.exchange-input');
+            const totalCell = row.querySelector('.total-cell');
+            
+            const amount = parseFloat(amountInput.value) || 0;
+            const exchange = parseFloat(exchangeInput.value) || 1;
+            const total = amount * exchange;
+            
+            // عرض الإجمالي برقم إنجليزي (لكن كنص)
+            totalCell.textContent = total.toFixed(2);
+        }
+        
+        // تحديث أرقام الصفوف بعد الحذف
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#movements-body tr');
+            rows.forEach((row, index) => {
+                row.querySelector('td:first-child').textContent = index + 1;
+            });
+        }
+        
+        // تحديث الملخص المالي
+        function updateSummary() {
+            const totalCells = document.querySelectorAll('.total-cell');
+            let totalAmount = 0;
+            let suspendedTotal = 0;
+            
+            totalCells.forEach((cell, index) => {
+                const row = cell.closest('tr');
+                const typeSelect = row.querySelector('.type-select');
+                const typeValue = typeSelect ? typeSelect.value : '';
+                
+                const value = parseFloat(cell.textContent) || 0;
+                totalAmount += value;
+                
+                // حساب إجمالي المسلم من المعلقات
+                if (typeValue === 'مسسلم معلقات سابقه') {
+                    suspendedTotal += value;
+                }
+            });
+            
+            document.getElementById('total-amount').textContent = totalAmount.toFixed(2) + ' ريال';
+            document.getElementById('suspended-total').textContent = suspendedTotal.toFixed(2) + ' ريال';
+            
+            const requiredInput = document.getElementById('required-amount');
+            const requiredAmount = parseFloat(requiredInput.value) || 0;
+            
+            // التعديل هنا: حساب الفارق مع طرح إجمالي المسلم من المعلقات
+            const difference = totalAmount - requiredAmount - suspendedTotal;
+            
+            const differenceElement = document.getElementById('difference-amount');
+            differenceElement.textContent = Math.abs(difference).toFixed(2) + ' ريال';
+            
+            const statusBox = document.getElementById('status-box');
+            
+            if (difference === 0) {
+                statusBox.className = 'status-box status-match';
+                statusBox.innerHTML = '<i class="fas fa-check-circle"></i> مطابق';
+                differenceElement.className = 'summary-value difference-amount';
+            } else if (difference > 0) {
+                statusBox.className = 'status-box status-excess';
+                statusBox.innerHTML = '<i class="fas fa-arrow-up"></i> زيادة';
+                differenceElement.className = 'summary-value difference-amount positive';
+            } else {
+                statusBox.className = 'status-box status-shortage';
+                statusBox.innerHTML = '<i class="fas fa-arrow-down"></i> نقص';
+                differenceElement.className = 'summary-value difference-amount negative';
+            }
+        }
+        
+        // دالة لحفظ الحركة
+        async function saveMovement() {
+            const employeeName = document.getElementById('employee-name').value;
+            const movementDate = document.getElementById('movement-date').value;
+            const note = document.getElementById('employee-note').value; // الحصول على الملاحظات
+            const requiredAmount = parseFloat(document.getElementById('required-amount').value) || 0;
+            
+            // جلب تفاصيل الحركات من الجدول
+            const movements = [];
+            const rows = document.querySelectorAll('#movements-body tr');
+            let totalAmount = 0;
+            let suspendedTotal = 0; // إضافة متغير لجمع المسلم من المعلقات
+            
+            for (const row of rows) {
+                const amount = parseFloat(row.querySelector('.amount-input').value) || 0;
+                const currency = row.querySelector('.currency-select').value;
+                const description = row.querySelector('.description-input').value;
+                const type = row.querySelector('.type-select').value;
+                const exchangeRate = parseFloat(row.querySelector('.exchange-input').value) || 1;
+                const total = parseFloat(row.querySelector('.total-cell').textContent) || 0;
+                
+                // حفظ المرفقات
+                const attachmentInput = row.querySelector('.attachment-input');
+                let attachmentId = null;
+                if (attachmentInput.files.length > 0) {
+                    const file = attachmentInput.files[0];
+                    attachmentId = await saveAttachment(file);
+                }
+                
+                movements.push({
+                    amount,
+                    currency,
+                    description,
+                    type,
+                    exchangeRate,
+                    total,
+                    attachmentId
+                });
+                
+                totalAmount += total;
+                
+                // جمع المسلم من المعلقات
+                if (type === 'مسسلم معلقات سابقه') {
+                    suspendedTotal += total;
+                }
+            }
+            
+            // التعديل هنا: حساب الفارق مع طرح إجمالي المسلم من المعلقات
+            const difference = totalAmount - requiredAmount - suspendedTotal;
+            let status;
+            if (difference === 0) {
+                status = 'match';
+            } else if (difference > 0) {
+                status = 'excess';
+            } else {
+                status = 'shortage';
+            }
+            
+            // الحصول على الرقم التسلسلي
+            const serialNumber = parseInt(document.getElementById('serial-number').textContent);
+            
+            // إنشاء كائن الحركة
+            const movementRecord = {
+                id: serialNumber,
+                employeeName,
+                note, // حفظ الملاحظات مع الحركة
+                date: movementDate,
+                movements,
+                totalAmount,
+                requiredAmount,
+                difference: Math.abs(difference),
+                status,
+                suspendedTotal // تخزين إجمالي المسلم من المعلقات
+            };
+            
+            // الحصول على الحركات المحفوظة من localStorage
+            let savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            savedMovements.push(movementRecord);
+            
+            // حفظ الحركة
+            localStorage.setItem('movements', JSON.stringify(savedMovements));
+            
+            // تحديث الرقم التسلسلي
+            const nextId = serialNumber + 1;
+            localStorage.setItem('nextId', nextId);
+            document.getElementById('serial-number').textContent = nextId;
+            
+            return movementRecord;
+        }
+        
+        // دالة لتحميل الحركات المحفوظة
+        function loadSavedMovements(movementsArray = null) {
+            const savedMovements = movementsArray || JSON.parse(localStorage.getItem('movements')) || [];
+            const tableBody = document.querySelector('#saved-movements-table tbody');
+            tableBody.innerHTML = '';
+            
+            savedMovements.forEach(movement => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${movement.id}</td>
+                    <td>${movement.employeeName}</td>
+                    <td>${movement.date}</td>
+                    <td>${movement.note || "—"}</td> <!-- عرض الملاحظات -->
+                    <td>${movement.requiredAmount.toFixed(2)}</td>
+                    <td>${movement.totalAmount.toFixed(2)}</td>
+                    <!-- إضافة حقل إجمالي المسلم من المعلقات -->
+                    <td>${movement.suspendedTotal ? movement.suspendedTotal.toFixed(2) : '0.00'}</td>
+                    <td>
+                        ${movement.status === 'match' ? 
+                            '<span class="status-match">مطابق</span>' : 
+                            movement.status === 'excess' ? 
+                            '<span class="status-excess">زيادة</span>' : 
+                            '<span class="status-shortage">نقص</span>'}
+                    </td>
+                    <td>
+                        <button class="action-btn print" data-id="${movement.id}"><i class="fas fa-print"></i></button>
+                        <button class="action-btn pdf" data-id="${movement.id}"><i class="fas fa-file-pdf"></i></button>
+                        <button class="action-btn load" data-id="${movement.id}"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete" data-id="${movement.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // إضافة حدث الحذف للصفوف المحفوظة
+            document.querySelectorAll('#saved-movements-table .delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteMovement(id);
+                });
+            });
+            
+            // إضافة حدث الطباعة للصفوف المحفوظة
+            document.querySelectorAll('#saved-movements-table .print').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    printSavedMovement(id);
+                });
+            });
+            
+            // إضافة حدث تصدير PDF للصفوف المحفوظة
+            document.querySelectorAll('#saved-movements-table .pdf').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    exportMovementToPDF(id);
+                });
+            });
+            
+            // إضافة حدث تحميل الحركة للتعديل
+            document.querySelectorAll('#saved-movements-table .load').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    loadMovementForEditing(id);
+                });
+            });
+        }
+        
+        // دالة لحذف حركة محفوظة
+        function deleteMovement(id) {
+            let savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const deleted = savedMovements.find(movement => movement.id == id);
+            if (!deleted) {
+                alert('لم يتم العثور على الحركة.');
+                return;
+            }
+            lastDeletedMovement = deleted;
+            savedMovements = savedMovements.filter(movement => movement.id != id);
+            localStorage.setItem('movements', JSON.stringify(savedMovements));
+            loadSavedMovements();
+            showUndoNotification();
+        }
+        
+        function showUndoNotification() {
+            const undoDiv = document.createElement('div');
+            undoDiv.style.position = 'fixed';
+            undoDiv.style.bottom = '30px';
+            undoDiv.style.left = '30px';
+            undoDiv.style.background = '#2c3e50';
+            undoDiv.style.color = '#fff';
+            undoDiv.style.padding = '15px 20px';
+            undoDiv.style.borderRadius = '8px';
+            undoDiv.innerHTML = 'تم الحذف <button style="margin-right:10px;padding:5px 10px;background:#e74c3c;color:#fff;border:none;border-radius:4px;cursor:pointer;">تراجع</button>';
+            document.body.appendChild(undoDiv);
+            const undoBtn = undoDiv.querySelector('button');
+            undoBtn.addEventListener('click', function() {
+                undoDelete();
+                document.body.removeChild(undoDiv);
+            });
+            setTimeout(() => {
+                if (document.body.contains(undoDiv)) {
+                    document.body.removeChild(undoDiv);
+                }
+            }, 5000);
+        }
+        
+        function undoDelete() {
+            if (lastDeletedMovement) {
+                let savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+                savedMovements.push(lastDeletedMovement);
+                localStorage.setItem('movements', JSON.stringify(savedMovements));
+                alert('✅ تم التراجع عن الحذف.');
+                lastDeletedMovement = null;
+            }
+        }
+        
+        // دالة لطباعة حركة محفوظة
+        function printSavedMovement(id) {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const movement = savedMovements.find(m => m.id == id);
+            
+            if (!movement) {
+                alert('الحركة غير موجودة');
+                return;
+            }
+            
+            let tableRows = '';
+            let suspendedTotal = 0; // حساب إجمالي المسلم من المعلقات
+            
+            movement.movements.forEach((item, index) => {
+                // حساب إجمالي المسلم من المعلقات
+                if (item.type === 'مسسلم معلقات سابقه') {
+                    suspendedTotal += item.total;
+                }
+                
+                tableRows += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.amount}</td>
+                    <td>${item.currency}</td>
+                    <td>${item.description}</td>
+                    <td>${item.type}</td>
+                    <td>${item.exchangeRate}</td>
+                    <td>${item.total.toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            // التعديل في حساب المبلغ الفارق
+            const difference = movement.totalAmount - movement.requiredAmount - suspendedTotal;
+            
+            const html = `
+                <div class="print-header">
+                    <h2>تقرير الحركة اليومية للموظف</h2>
+                    <p>اسم الموظف: ${movement.employeeName}</p>
+                    <p>الملاحظات: ${movement.note || "—"}</p> <!-- عرض الملاحظات هنا -->
+                    <p>تاريخ الحركة: ${movement.date}</p>
+                    <p>رقم التسلسل: ${movement.id}</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المبلغ</th>
+                            <th>العملة</th>
+                            <th>البيان</th>
+                            <th>النوع</th>
+                            <th>سعر الصرف</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+                <div style="margin-top:20px;">
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>إجمالي الحركات</th>
+                                <th>المبلغ المطلوب</th>
+                                <th>المبلغ الفارق</th>
+                                <th>حالة الفارق</th>
+                                <th>إجمالي المسلم من المعلقات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="print-total-row">
+                                <td>${movement.totalAmount.toFixed(2)} ريال</td>
+                                <td>${movement.requiredAmount.toFixed(2)} ريال</td>
+                                <td>${Math.abs(difference).toFixed(2)} ريال</td>
+                                <td>${movement.status === 'match' ? 'مطابق' : movement.status === 'excess' ? 'زيادة' : 'نقص'}</td>
+                                <td>${suspendedTotal.toFixed(2)} ريال</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="print-footer">
+                    <p>برنامج تقارير الحركة اليومية - برمجه وتطوير /جاود الحيدري &copy; ${new Date().getFullYear()}</p>
+                </div>
+            `;
+            
+            const printWindow = document.getElementById('print-window');
+            const printContent = document.getElementById('print-content');
+            printContent.innerHTML = html;
+            printWindow.style.display = 'block';
+            
+            // إعادة إرفاق حدث الإغلاق
+            document.getElementById('print-close').addEventListener('click', function() {
+                printWindow.style.display = 'none';
+            });
+        }
+        
+        // دالة لتصدير حركة إلى PDF
+        function exportMovementToPDF(id) {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const movement = savedMovements.find(m => m.id == id);
+            
+            if (!movement) {
+                alert('الحركة غير موجودة');
+                return;
+            }
+            
+            // استخدام مكتبة jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // إعداد المستند
+            doc.setFontSize(16);
+            doc.text('تقرير الحركة اليومية', 105, 15, null, null, 'center');
+            doc.setFontSize(12);
+            doc.text(`اسم الموظف: ${movement.employeeName}`, 15, 25);
+            doc.text(`الملاحظات: ${movement.note || "—"}`, 15, 35); // عرض الملاحظات هنا
+            doc.text(`تاريخ الحركة: ${movement.date}`, 15, 45);
+            doc.text(`رقم التسلسل: ${movement.id}`, 15, 55);
+            
+            // إعداد الجدول
+            const headers = ['#', 'المبلغ', 'العملة', 'البيان', 'النوع', 'سعر الصرف', 'الإجمالي'];
+            const rows = movement.movements.map((item, index) => [
+                index + 1,
+                item.amount,
+                item.currency,
+                item.description,
+                item.type,
+                item.exchangeRate,
+                item.total
+            ]);
+            
+            // إضافة الجدول إلى المستند
+            doc.autoTable({
+                startY: 60,
+                head: [headers],
+                body: rows,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [44, 62, 80],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                styles: { 
+                    font: 'Tajawal',
+                    fontStyle: 'normal',
+                    textColor: [0, 0, 0],
+                    cellPadding: 3,
+                    fontSize: 10
+                },
+                columnStyles: {
+                    0: { cellWidth: 15 },
+                    1: { cellWidth: 30 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: 50 },
+                    4: { cellWidth: 40 },
+                    5: { cellWidth: 30 },
+                    6: { cellWidth: 30 }
+                },
+                margin: { top: 60 }
+            });
+            
+            // حساب إجمالي المسلم من المعلقات
+            const suspendedTotal = movement.movements
+                .filter(item => item.type === 'مسسلم معلقات سابقه')
+                .reduce((sum, item) => sum + item.total, 0);
+            
+            // حساب المبلغ الفارق الجديد
+            const difference = movement.totalAmount - movement.requiredAmount - suspendedTotal;
+            
+            // إضافة الملخص
+            const summaryY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(14);
+            doc.text('الملخص المالي', 105, summaryY, null, null, 'center');
+            
+            const summary = [
+                [`إجمالي الحركات: ${movement.totalAmount.toFixed(2)} ريال`],
+                [`المبلغ المطلوب: ${movement.requiredAmount.toFixed(2)} ريال`],
+                [`المبلغ الفارق: ${Math.abs(difference).toFixed(2)} ريال`],
+                [`حالة الفارق: ${movement.status === 'match' ? 'مطابق' : movement.status === 'excess' ? 'زيادة' : 'نقص'}`],
+                [`إجمالي المسلم من المعلقات: ${suspendedTotal.toFixed(2)} ريال`]
+            ];
+            
+            doc.autoTable({
+                startY: summaryY + 10,
+                body: summary,
+                theme: 'plain',
+                styles: { 
+                    font: 'Tajawal',
+                    fontStyle: 'bold',
+                    textColor: [0, 0, 0],
+                    cellPadding: 3,
+                    fontSize: 12
+                },
+                margin: { left: 15 }
+            });
+            
+            // حفظ المستند
+            doc.save(`تقرير_الحركة_${movement.id}.pdf`);
+        }
+        
+        // دالة لتحميل حركة للتعديل
+        function loadMovementForEditing(id) {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const movement = savedMovements.find(m => m.id == id);
+            
+            if (!movement) {
+                alert('الحركة غير موجودة');
+                return;
+            }
+            
+            // تعيين معرف الحركة الحالي
+            currentEditId = id;
+            
+            // تعبئة الحقول الرئيسية
+            document.getElementById('employee-name').value = movement.employeeName;
+            document.getElementById('employee-note').value = movement.note || ""; // تعبئة حقل الملاحظات
+            document.getElementById('movement-date').value = movement.date;
+            document.getElementById('required-amount').value = movement.requiredAmount;
+            document.getElementById('serial-number').textContent = movement.id;
+            
+            // حذف جميع الصفوف الحالية
+            document.querySelectorAll('#movements-body tr').forEach(row => row.remove());
+            
+            // إضافة الصفوف الجديدة
+            movement.movements.forEach((item, index) => {
+                const tableBody = document.getElementById('movements-body');
+                const newRow = document.createElement('tr');
+                
+                newRow.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input type="number" class="amount-input" placeholder="المبلغ" step="0.01" value="${item.amount}"></td>
+                    <td>
+                        <select class="currency-select">
+                            <option value="YER" ${item.currency === 'YER' ? 'selected' : ''}>ريال يمني</option>
+                            <option value="SAR" ${item.currency === 'SAR' ? 'selected' : ''}>ريال سعودي</option>
+                            <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>دولار أمريكي</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="description-input" placeholder="البيان" value="${item.description}"></td>
+                    <td>
+                        <select class="type-select">
+                            <option value="موظفين" ${item.type === 'موظفين' ? 'selected' : ''}>موظفين</option>
+                            <option value="معلقات" ${item.type === 'معلقات' ? 'selected' : ''}>معلقات</option>
+                            <option value="سدادموردين" ${item.type === 'سدادموردين' ? 'selected' : ''}>سدادموردين</option>
+                            <option value="مصروفات" ${item.type === 'مصروفات' ? 'selected' : ''}>مصروفات</option>
+                            <option value="المدير" ${item.type === 'المدير' ? 'selected' : ''}>المدير</option>
+                            <option value="فواتير مشتريات" ${item.type === 'فواتير مشتريات' ? 'selected' : ''}>فواتير مشتريات</option>
+                            <option value="نقديه" ${item.type === 'نقديه' ? 'selected' : ''}>نقديه</option>
+                            <option value="اخرى" ${item.type === 'اخرى' ? 'selected' : ''}>اخرى</option>
+                            <option value="مسسلم معلقات سابقه" ${item.type === 'مسسلم معلقات سابقه' ? 'selected' : ''}>مسسلم معلقات سابقه</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="exchange-input" value="${item.exchangeRate}" step="0.01" ${item.currency === 'YER' ? 'disabled' : ''}></td>
+                    <td class="total-cell">${item.total}</td>
+                    <td class="attachment-cell">
+                        <button class="attachment-btn">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="file" class="attachment-input" accept="image/*,.pdf">
+                        <img class="attachment-preview" style="display:none">
+                    </td>
+                    <td class="action-buttons">
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(newRow);
+                addRowEvents(newRow);
+                
+                // عرض المرفق إذا كان موجوداً
+                if (item.attachmentId) {
+                    const attachmentPreview = newRow.querySelector('.attachment-preview');
+                    const attachment = JSON.parse(localStorage.getItem("attachments"))[item.attachmentId];
+                    if (attachment && attachment.type.startsWith('image/')) {
+                        attachmentPreview.src = `data:${attachment.type};base64,${attachment.data}`;
+                        attachmentPreview.style.display = 'block';
+                    }
+                }
+            });
+            
+            // إظهار زر حفظ التعديلات وإخفاء زر الحفظ الجديد
+            document.getElementById('update-btn').style.display = 'inline-block';
+            document.getElementById('confirm-save-btn').style.display = 'none';
+            
+            // تحديث الملخص
+            updateSummary();
+            
+            // التبديل إلى قسم المدخلات
+            document.querySelectorAll('.dept-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('[data-section="input"]').classList.add('active');
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById('input-section').classList.add('active');
+            
+            alert('تم تحميل الحركة للتعديل - استخدم زر "حفظ التعديلات" بعد الانتهاء');
+        }
+        
+        // دالة جديدة لحفظ التعديلات
+        async function updateMovement() {
+            if (!currentEditId) {
+                alert('لا توجد حركة محملة للتعديل');
+                return;
+            }
+            
+            const employeeName = document.getElementById('employee-name').value;
+            const note = document.getElementById('employee-note').value; // الحصول على الملاحظات
+            const movementDate = document.getElementById('movement-date').value;
+            const requiredAmount = parseFloat(document.getElementById('required-amount').value) || 0;
+            
+            // جلب تفاصيل الحركات من الجدول
+            const movements = [];
+            const rows = document.querySelectorAll('#movements-body tr');
+            let totalAmount = 0;
+            let suspendedTotal = 0; // إضافة متغير لجمع المسلم من المعلقات
+            
+            for (const row of rows) {
+                const amount = parseFloat(row.querySelector('.amount-input').value) || 0;
+                const currency = row.querySelector('.currency-select').value;
+                const description = row.querySelector('.description-input').value;
+                const type = row.querySelector('.type-select').value;
+                const exchangeRate = parseFloat(row.querySelector('.exchange-input').value) || 1;
+                const total = parseFloat(row.querySelector('.total-cell').textContent) || 0;
+                
+                // حفظ المرفقات
+                const attachmentInput = row.querySelector('.attachment-input');
+                let attachmentId = null;
+                if (attachmentInput.files.length > 0) {
+                    const file = attachmentInput.files[0];
+                    attachmentId = await saveAttachment(file);
+                }
+                
+                movements.push({
+                    amount,
+                    currency,
+                    description,
+                    type,
+                    exchangeRate,
+                    total,
+                    attachmentId
+                });
+                
+                totalAmount += total;
+                
+                // جمع المسلم من المعلقات
+                if (type === 'مسسلم معلقات سابقه') {
+                    suspendedTotal += total;
+                }
+            }
+            
+            // التعديل هنا: حساب الفارق مع طرح إجمالي المسلم من المعلقات
+            const difference = totalAmount - requiredAmount - suspendedTotal;
+            let status;
+            if (difference === 0) {
+                status = 'match';
+            } else if (difference > 0) {
+                status = 'excess';
+            } else {
+                status = 'shortage';
+            }
+            
+            // تحديث كائن الحركة
+            const updatedMovement = {
+                id: currentEditId,
+                employeeName,
+                note, // حفظ الملاحظات
+                date: movementDate,
+                movements,
+                totalAmount,
+                requiredAmount,
+                difference: Math.abs(difference),
+                status,
+                suspendedTotal
+            };
+            
+            // تحديث localStorage
+            let savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            const index = savedMovements.findIndex(m => m.id == currentEditId);
+            
+            if (index !== -1) {
+                savedMovements[index] = updatedMovement;
+                localStorage.setItem("movements", JSON.stringify(savedMovements));
+                alert(`✅ تم تحديث الحركة رقم ${currentEditId} بنجاح`);
+                
+                // إعادة تعيين الواجهة
+                document.getElementById('update-btn').style.display = 'none';
+                document.getElementById('confirm-save-btn').style.display = 'inline-block';
+                currentEditId = null;
+                
+                // تحديث قسم التقارير
+                loadSavedMovements();
+            } else {
+                alert('لم يتم العثور على الحركة للتحديث');
+            }
+        }
+        
+        // دالة لإعادة تعيين النموذج
+        function resetForm() {
+            document.getElementById('update-btn').style.display = 'none';
+            document.getElementById('confirm-save-btn').style.display = 'inline-block';
+            currentEditId = null;
+            
+            // إعادة تعيين الحقول
+            document.getElementById('employee-name').value = '';
+            document.getElementById('employee-note').value = ''; // إعادة تعيين الملاحظات
+            document.getElementById('movement-date').valueAsDate = new Date();
+            document.getElementById('required-amount').value = '';
+            document.getElementById('suspended-total').textContent = '0.00 ريال';
+            document.querySelectorAll('#movements-body tr').forEach(row => row.remove());
+            addNewRow();
+            updateSummary();
+        }
+        
+        // دالة لتحميل التقارير التفصيلية
+        function loadDetailedReports() {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const tableBody = document.querySelector('#detailed-reports-table tbody');
+            tableBody.innerHTML = '';
+            
+            // تفريغ البيانات المحفوظة في جدول تفصيلي
+            savedMovements.forEach(movement => {
+                movement.movements.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${movement.employeeName}</td>
+                        <td>${movement.date}</td>
+                        <td>${movement.note || "—"}</td> <!-- عرض الملاحظات -->
+                        <td>${item.amount}</td>
+                        <td>${item.currency}</td>
+                        <td>${item.description}</td>
+                        <td>${item.type}</td>
+                        <td>${item.exchangeRate}</td>
+                        <td>${item.total.toFixed(2)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+            
+            // تحديث الإجمالي المفلتر
+            updateFilteredTotal();
+        }
+        
+        // دالة لتحديث إجمالي المبالغ المفلترة
+        function updateFilteredTotal() {
+            const rows = document.querySelectorAll('#detailed-reports-table tbody tr');
+            let total = 0;
+            
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const totalCell = row.cells[8];
+                    total += parseFloat(totalCell.textContent) || 0;
+                }
+            });
+            
+            document.getElementById('filtered-total').textContent = total.toFixed(2);
+        }
+        
+        // دالة لإضافة عناصر تحكم في الفلترة
+        function addFilterControl(filterType) {
+            const filterControls = document.getElementById('filter-controls');
+            let controlHtml = '';
+            
+            switch(filterType) {
+                case 'employee':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-user"></i> فلترة باسم الموظف</label>
+                                <input id="filter-detailed-employee" placeholder="ابحث باسم الموظف" type="text">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'date':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-calendar"></i> فلترة بالتاريخ</label>
+                                <input id="filter-detailed-date" type="date">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'amount':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-money-bill"></i> فلترة بالمبلغ</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input id="filter-detailed-amount-min" placeholder="الحد الأدنى" style="flex: 1;" type="number">
+                                    <input id="filter-detailed-amount-max" placeholder="الحد الأقصى" style="flex: 1;" type="number">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'currency':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-coins"></i> فلترة بالعملة</label>
+                                <select id="filter-detailed-currency">
+                                    <option value="">جميع العملات</option>
+                                    <option value="YER">ريال يمني</option>
+                                    <option value="SAR">ريال سعودي</option>
+                                    <option value="USD">دولار أمريكي</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'description':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-comment"></i> فلترة بالبيان</label>
+                                <input id="filter-detailed-description" placeholder="ابحث في البيان" type="text">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'exchange':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-exchange-alt"></i> فلترة بسعر الصرف</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input id="filter-detailed-exchange-min" placeholder="الحد الأدنى" style="flex: 1;" type="number">
+                                    <input id="filter-detailed-exchange-max" placeholder="الحد الأقصى" style="flex: 1;" type="number">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'total':
+                    controlHtml = `
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label><i class="fas fa-calculator"></i> فلترة بالإجمالي</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input id="filter-detailed-total-min" placeholder="الحد الأدنى" style="flex: 1;" type="number">
+                                    <input id="filter-detailed-total-max" placeholder="الحد الأقصى" style="flex: 1;" type="number">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            filterControls.innerHTML += controlHtml;
+            
+            // إضافة أحداث للمدخلات الجديدة
+            document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(input => {
+                input.addEventListener('input', function() {
+                    filterDetailedTable();
+                    updateFilteredTotal();
+                });
+            });
+        }
+        
+        // دالة لفلترة الجدول التفصيلي
+        function filterDetailedTable() {
+            const rows = document.querySelectorAll('#detailed-reports-table tbody tr');
+            
+            rows.forEach(row => {
+                const employee = row.cells[0].textContent.toLowerCase();
+                const date = row.cells[1].textContent;
+                const note = row.cells[2].textContent.toLowerCase();
+                const amount = parseFloat(row.cells[3].textContent);
+                const currency = row.cells[4].textContent;
+                const description = row.cells[5].textContent.toLowerCase();
+                const type = row.cells[6].textContent.toLowerCase();
+                const exchange = parseFloat(row.cells[7].textContent);
+                const total = parseFloat(row.cells[8].textContent);
+                
+                let show = true;
+                
+                // فلترة اسم الموظف
+                const filterEmployee = document.getElementById('filter-detailed-employee');
+                if (filterEmployee && filterEmployee.value) {
+                    if (!employee.includes(filterEmployee.value.toLowerCase())) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة الملاحظات
+                const filterNote = document.getElementById('filter-detailed-note');
+                if (filterNote && filterNote.value) {
+                    if (!note.includes(filterNote.value.toLowerCase())) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة التاريخ
+                const filterDate = document.getElementById('filter-detailed-date');
+                if (filterDate && filterDate.value) {
+                    if (date !== filterDate.value) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة المبلغ
+                const filterAmountMin = document.getElementById('filter-detailed-amount-min');
+                const filterAmountMax = document.getElementById('filter-detailed-amount-max');
+                if (filterAmountMin && filterAmountMin.value) {
+                    if (amount < parseFloat(filterAmountMin.value)) {
+                        show = false;
+                    }
+                }
+                if (filterAmountMax && filterAmountMax.value) {
+                    if (amount > parseFloat(filterAmountMax.value)) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة العملة
+                const filterCurrency = document.getElementById('filter-detailed-currency');
+                if (filterCurrency && filterCurrency.value) {
+                    if (currency !== filterCurrency.value) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة البيان
+                const filterDescription = document.getElementById('filter-detailed-description');
+                if (filterDescription && filterDescription.value) {
+                    if (!description.includes(filterDescription.value.toLowerCase())) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة النوع
+                const filterType = document.getElementById('filter-detailed-type');
+                if (filterType && filterType.value) {
+                    if (!type.includes(filterType.value.toLowerCase())) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة سعر الصرف
+                const filterExchangeMin = document.getElementById('filter-detailed-exchange-min');
+                const filterExchangeMax = document.getElementById('filter-detailed-exchange-max');
+                if (filterExchangeMin && filterExchangeMin.value) {
+                    if (exchange < parseFloat(filterExchangeMin.value)) {
+                        show = false;
+                    }
+                }
+                if (filterExchangeMax && filterExchangeMax.value) {
+                    if (exchange > parseFloat(filterExchangeMax.value)) {
+                        show = false;
+                    }
+                }
+                
+                // فلترة الإجمالي
+                const filterTotalMin = document.getElementById('filter-detailed-total-min');
+                const filterTotalMax = document.getElementById('filter-detailed-total-max');
+                if (filterTotalMin && filterTotalMin.value) {
+                    if (total < parseFloat(filterTotalMin.value)) {
+                        show = false;
+                    }
+                }
+                if (filterTotalMax && filterTotalMax.value) {
+                    if (total > parseFloat(filterTotalMax.value)) {
+                        show = false;
+                    }
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        // دالة لإعادة تعيين الفلتر
+        function resetDetailedFilter() {
+            document.getElementById('filter-controls').innerHTML = '';
+            document.querySelectorAll('#detailed-reports-table tbody tr').forEach(row => {
+                row.style.display = '';
+            });
+            updateFilteredTotal();
+        }
+        
+        // دالة لتحديث ملخص التحليلات
+        function updateAnalyticsSummary() {
+            const savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            if (savedMovements.length === 0) return;
+            
+            let totalMovements = 0;
+            const employeeTotals = {};
+            const descriptionCounts = {};
+            
+            savedMovements.forEach(movement => {
+                totalMovements += movement.totalAmount;
+                
+                // حساب إجمالي الموظفين
+                if (!employeeTotals[movement.employeeName]) {
+                    employeeTotals[movement.employeeName] = 0;
+                }
+                employeeTotals[movement.employeeName] += movement.totalAmount;
+                
+                // حساب تكرار البيانات
+                movement.movements.forEach(item => {
+                    if (!descriptionCounts[item.description]) {
+                        descriptionCounts[item.description] = 0;
+                    }
+                    descriptionCounts[item.description]++;
+                });
+            });
+            
+            // تحديث الإجمالي الكلي
+            document.getElementById('total-movements').textContent = totalMovements.toLocaleString('ar') + ' ريال';
+            
+            // تحديث الموظف الأكثر حركة
+            let topEmployee = '';
+            let maxEmployeeTotal = 0;
+            for (const [employee, total] of Object.entries(employeeTotals)) {
+                if (total > maxEmployeeTotal) {
+                    maxEmployeeTotal = total;
+                    topEmployee = employee;
+                }
+            }
+            document.getElementById('top-employee').textContent = topEmployee || 'غير متوفر';
+            
+            // تحديث البيان الأكثر تكرارًا
+            let topDescription = '';
+            let maxDescriptionCount = 0;
+            for (const [description, count] of Object.entries(descriptionCounts)) {
+                if (count > maxDescriptionCount) {
+                    maxDescriptionCount = count;
+                    topDescription = description;
+                }
+            }
+            document.getElementById('top-description').textContent = topDescription || 'غير متوفر';
+        }
+        
+        // دالة لإنشاء الرسوم البيانية
+        function generateCharts() {
+            const savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            if (savedMovements.length === 0) {
+                document.getElementById('analytics-section').innerHTML = `
+                    <div class="input-section">
+                        <h2 style="text-align: center; color: var(--primary); margin: 50px 0;">
+                            <i class="fas fa-database"></i> لا توجد بيانات كافية لتوليد الرسوم البيانية
+                        </h2>
+                        <p style="text-align: center;">يرجى إدخال بيانات الحركات أولاً</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // إعداد بيانات للرسوم البيانية
+            const currencyData = { YER: 0, SAR: 0, USD: 0 };
+            const employeeData = {};
+            const descriptionData = {};
+            let totalRequired = 0;
+            let totalActual = 0;
+            
+            savedMovements.forEach(movement => {
+                totalRequired += movement.requiredAmount;
+                totalActual += movement.totalAmount;
+                
+                // حساب العملات
+                movement.movements.forEach(item => {
+                    currencyData[item.currency] += item.amount;
+                });
+                
+                // حساب الموظفين
+                if (!employeeData[movement.employeeName]) {
+                    employeeData[movement.employeeName] = 0;
+                }
+                employeeData[movement.employeeName] += movement.totalAmount;
+                
+                // حساب تكرار البيانات
+                movement.movements.forEach(item => {
+                    if (item.description) {
+                        if (!descriptionData[item.description]) {
+                            descriptionData[item.description] = 0;
+                        }
+                        descriptionData[item.description]++;
+                    }
+                });
+            });
+            
+            // إنشاء مخطط توزيع العملات
+            const currencyCtx = document.getElementById('currency-chart').getContext('2d');
+            new Chart(currencyCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['ريال يمني', 'ريال سعودي', 'دولار أمريكي'],
+                    datasets: [{
+                        data: [currencyData.YER, currencyData.SAR, currencyData.USD],
+                        backgroundColor: ['#3498db', '#2ecc71', '#9b59b6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // إنشاء مخطط المقارنة
+            const comparisonCtx = document.getElementById('comparison-chart').getContext('2d');
+            new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['المبلغ المطلوب', 'المبلغ الفعلي'],
+                    datasets: [{
+                        label: 'المبلغ بالريال اليمني',
+                        data: [totalRequired, totalActual],
+                        backgroundColor: ['#3498db', '#2ecc71']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // إنشاء مخطط الموظفين
+            const employeeCtx = document.getElementById('employee-chart').getContext('2d');
+            new Chart(employeeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(employeeData),
+                    datasets: [{
+                        data: Object.values(employeeData),
+                        backgroundColor: ['#3498db', '#2ecc71', '#9b59b6', '#e74c3c', '#f39c12']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // إنشاء مخطط البيانات الأكثر تكرارًا
+            const descriptionCtx = document.getElementById('description-chart').getContext('2d');
+            
+            // تحويل بيانات التكرار إلى مصفوفات
+            const descriptionLabels = Object.keys(descriptionData);
+            const descriptionValues = Object.values(descriptionData);
+            
+            // تلوين الأشرطة بشكل متدرج
+            const backgroundColors = descriptionLabels.map((_, index) => {
+                const hue = (index * 137.5) % 360; // زوايا متباعدة لتوليد ألوان مختلفة
+                return `hsl(${hue}, 70%, 60%)`;
+            });
+            
+            new Chart(descriptionCtx, {
+                type: 'bar',
+                data: {
+                    labels: descriptionLabels,
+                    datasets: [{
+                        label: 'تكرار البيان',
+                        data: descriptionValues,
+                        backgroundColor: backgroundColors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // دالة لطباعة إدخال البيانات
+        function printInputData() {
+            const employeeName = document.getElementById('employee-name').value || "—";
+            const note = document.getElementById('employee-note').value || "—"; // الحصول على الملاحظات
+            const movementDate = document.getElementById('movement-date').value || "—";
+            const serialNumber = document.getElementById('serial-number').innerText || "—";
+
+            const rows = document.querySelectorAll('#movements-body tr');
+            let tableRows = '';
+            let suspendedTotal = 0;
+            
+            rows.forEach((row, index) => {
+                const amount = row.querySelector('.amount-input')?.value || "";
+                const currency = row.querySelector('.currency-select')?.value || "";
+                const description = row.querySelector('.description-input')?.value || "";
+                const type = row.querySelector('.type-select')?.value || "";
+                const exchange = row.querySelector('.exchange-input')?.value || "";
+                const total = row.querySelector('.total-cell')?.innerText || "";
+                
+                // حساب إجمالي المسلم من المعلقات
+                if (type === 'مسسلم معلقات سابقه') {
+                    suspendedTotal += parseFloat(total) || 0;
+                }
+                
+                tableRows += `
+                    <tr>
+                        <td>${amount}</td>
+                        <td>${currency}</td>
+                        <td>${description}</td>
+                        <td>${type}</td>
+                        <td>${exchange}</td>
+                        <td>${total}</td>
+                    </tr>
+                `;
+            });
+
+            const totalAmount = document.getElementById('total-amount')?.innerText || "0.00 ريال";
+            const requiredAmount = document.getElementById('required-amount')?.value || "0.00";
+            const differenceAmount = document.getElementById('difference-amount')?.innerText || "0.00 ريال";
+            const status = document.getElementById('status-box')?.innerText || "";
+
+            let printWindow = window.open('', '', 'width=900,height=750');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>تقرير حركة الموظف</title>
+                    <style>
+                        body { font-family: 'Tajawal', sans-serif; direction: rtl; margin: 30px; }
+                        h2 { text-align: center; color: #007bff; }
+                        .info-header {
+                            margin-bottom: 20px;
+                        }
+                        .info-header table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .info-header td {
+                            padding: 8px 12px;
+                            font-size: 1.1rem;
+                            font-weight: bold;
+                            text-align: center;
+                            border: 1px solid #ccc;
+                        }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                        th { background-color: #f0f0f0; color: red; }
+                        .summary-table { margin-top: 30px; }
+                        .footer-note {
+                            text-align: center;
+                            margin-top: 40px;
+                            font-style: italic;
+                            font-size: 0.95rem;
+                            color: #555;
+                        }
+                    
+.app-container.collapsed .sidebar {
+    width: 60px;
+}
+.app-container.collapsed .main-content {
+    margin-right: 60px;
+}
+.app-container.collapsed .sidebar-header h2 span,
+.app-container.collapsed .dept-item span,
+.app-container.collapsed .user-info {
+    display: none;
+}
+
+</style>
+                </head>
+                <body>
+                    <h2>تقرير حركة الموظف</h2>
+                    <div class="info-header">
+                        <table>
+                            <tr>
+                                <td>اسم الموظف: ${employeeName}</td>
+                                <td>الملاحظات: ${note}</td> <!-- عرض الملاحظات هنا -->
+                                <td>رقم التسلسل: ${serialNumber}</td>
+                            </tr>
+                            <tr>
+                                <td>تاريخ الحركة: ${movementDate}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المبلغ</th>
+                                <th>العملة</th>
+                                <th>البيان التوضيحي</th>
+                                <th>النوع</th>
+                                <th>سعر الصرف</th>
+                                <th>الإجمالي بالريال اليمني</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>إجمالي الحركات</th>
+                                <th>المبلغ المطلوب</th>
+                                <th>المبلغ الفارق</th>
+                                <th>حالة الفارق</th>
+                                <th>إجمالي المسلم من المعلقات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${totalAmount}</td>
+                                <td>${requiredAmount} ريال</td>
+                                <td>${differenceAmount}</td>
+                                <td>${status}</td>
+                                <td>${suspendedTotal.toFixed(2)} ريال</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="footer-note">
+                        <p>تم الطباعة بتاريخ: ${new Date().toLocaleDateString('ar-YE')}</p>
+                        <p>برمجة وتطوير / جاود الحيدري</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+        
+        // دالة لطباعة التقارير التفصيلية المفلترة
+        function printDetailedReports() {
+            const printWindow = document.getElementById('print-window');
+            const printContent = document.getElementById('print-content');
+            
+            // بناء محتوى الطباعة
+            let content = `
+                <div class="print-close" id="print-close">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="print-header">
+                    <h2>التقارير التفصيلية - بيانات مفلترة</h2>
+                    <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-YE')}</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>اسم الموظف</th>
+                            <th>تاريخ الحركه</th>
+                            <th>الملاحظات</th>
+                            <th>المبلغ</th>
+                            <th>العمله</th>
+                            <th>البيان التوضيحي</th>
+                            <th>النوع</th>
+                            <th>سعر الصرف</th>
+                            <th>الاجمالي بالريال اليمني</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let filteredTotal = 0;
+            
+            // جمع الصفوف المرئية فقط
+            document.querySelectorAll('#detailed-reports-table tbody tr').forEach(row => {
+                if (row.style.display !== 'none') {
+                    const totalValue = parseFloat(row.cells[8].textContent) || 0;
+                    filteredTotal += totalValue;
+                    
+                    content += `
+                        <tr>
+                            <td>${row.cells[0].textContent}</td>
+                            <td>${row.cells[1].textContent}</td>
+                            <td>${row.cells[2].textContent}</td>
+                            <td>${row.cells[3].textContent}</td>
+                            <td>${row.cells[4].textContent}</td>
+                            <td>${row.cells[5].textContent}</td>
+                            <td>${row.cells[6].textContent}</td>
+                            <td>${row.cells[7].textContent}</td>
+                            <td>${row.cells[8].textContent}</td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            content += `
+                    </tbody>
+                    <tfoot>
+                        <tr class="print-total-row">
+                            <td colspan="8" style="text-align: right; font-weight: bold;">الإجمالي الكلي للمبلغ المفلتر :</td>
+                            <td style="font-weight: bold;">${filteredTotal.toFixed(2)} ريال</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="print-footer">
+                    <p>برنامج تقارير الحركة اليومية - برمجه وتطوير / جاود الحيدري &copy; ${new Date().getFullYear()}</p>
+                </div>
+            `;
+            
+            printContent.innerHTML = content;
+            
+            // إعادة إرفاق حدث الإغلاق
+            document.getElementById('print-close').addEventListener('click', function() {
+                printWindow.style.display = 'none';
+            });
+            
+            printWindow.style.display = 'block';
+        }
+        
+        // دالة لإنشاء نسخة احتياطية
+        function createBackup() {
+            const savedMovements = localStorage.getItem('movements');
+            const nextId = localStorage.getItem('nextId');
+            
+            if (!savedMovements) {
+                alert('لا توجد بيانات لحفظها');
+                return;
+            }
+            
+            const data = {
+                movements: JSON.parse(savedMovements),
+                nextId: nextId || 1,
+                backupDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('تم إنشاء النسخة الاحتياطية بنجاح');
+        }
+        
+        // دالة لاستعادة نسخة احتياطية
+        function restoreBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.movements || !data.nextId) {
+                        throw new Error('ملف النسخة الاحتياطية غير صالح');
+                    }
+                    
+                    localStorage.setItem('movements', JSON.stringify(data.movements));
+                    localStorage.setItem('nextId', data.nextId);
+                    
+                    // تحديث الواجهة
+                    loadSavedMovements();
+                    loadDetailedReports();
+                    updateAnalyticsSummary();
+                    generateCharts();
+                    
+                    alert('تم استعادة النسخة الاحتياطية بنجاح');
+                } catch (error) {
+                    console.error('Error restoring backup:', error);
+                    alert('حدث خطأ أثناء استعادة النسخة الاحتياطية: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // دالة لطباعة جميع الحركات مع دعم التقسيم إلى صفحات
+        function printAllMovements() {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            if (savedMovements.length === 0) {
+                alert('لا توجد حركات مسجلة للطباعة');
+                return;
+            }
+            
+            // إنشاء نافذة طباعة
+            const printWin = window.open('', '_blank', 'width=900,height=700');
+            printWin.document.write(`
+                <html>
+                <head>
+                    <title>طباعة جميع الحركات</title>
+                    <style>
+                        @media print {
+                            body {
+                                font-family: 'Tajawal', sans-serif;
+                                direction: rtl;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin-bottom: 20px;
+                            }
+                            th, td {
+                                border: 1px solid #000;
+                                padding: 8px;
+                                text-align: center;
+                            }
+                            th {
+                                background-color: #f2f2f2;
+                            }
+                            .page-break {
+                                page-break-after: always;
+                            }
+                            .print-header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .print-footer {
+                                text-align: center;
+                                margin-top: 20px;
+                                font-style: italic;
+                                color: #666;
+                            }
+                        }
+                    
+.app-container.collapsed .sidebar {
+    width: 60px;
+}
+.app-container.collapsed .main-content {
+    margin-right: 60px;
+}
+.app-container.collapsed .sidebar-header h2 span,
+.app-container.collapsed .dept-item span,
+.app-container.collapsed .user-info {
+    display: none;
+}
+
+</style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h1>كشف جميع الحركات المالية</h1>
+                        <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-YE')}</p>
+                    </div>
+            `);
+            
+            // عدد الصفوف في كل صفحة
+            const rowsPerPage = 20;
+            const totalPages = Math.ceil(savedMovements.length / rowsPerPage);
+            
+            for (let page = 0; page < totalPages; page++) {
+                const start = page * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageMovements = savedMovements.slice(start, end);
+                
+                printWin.document.write(`
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم</th>
+                                <th>اسم الموظف</th>
+                                <th>التاريخ</th>
+                                <th>الملاحظات</th>
+                                <th>المطلوب</th>
+                                <th>الإجمالي</th>
+                                <th>إجمالي المسلم</th>
+                                <th>الحالة</th>
+                                <th>الفرق</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `);
+                
+                pageMovements.forEach((movement, index) => {
+                    const statusArabic = movement.status === 'match' ? 'مطابق' : 
+                                       movement.status === 'excess' ? 'زيادة' : 'نقص';
+                    const diff = movement.difference ? movement.difference.toFixed(2) : '0.00';
+                    
+                    printWin.document.write(`
+                        <tr>
+                            <td>${start + index + 1}</td>
+                            <td>${movement.employeeName}</td>
+                            <td>${movement.date}</td>
+                            <td>${movement.note || "—"}</td> <!-- عرض الملاحظات -->
+                            <td>${movement.requiredAmount.toFixed(2)}</td>
+                            <td>${movement.totalAmount.toFixed(2)}</td>
+                            <td>${movement.suspendedTotal ? movement.suspendedTotal.toFixed(2) : '0.00'}</td>
+                            <td>${statusArabic}</td>
+                            <td>${diff}</td>
+                        </tr>
+                    `);
+                });
+                
+                printWin.document.write(`
+                        </tbody>
+                    </table>
+                    <div class="print-footer">
+                        الصفحة ${page + 1} من ${totalPages}
+                    </div>
+                `);
+                
+                // إضافة فاصل صفحة إذا لم تكن الصفحة الأخيرة
+                if (page < totalPages - 1) {
+                    printWin.document.write('<div class="page-break"></div>');
+                }
+            }
+            
+            printWin.document.write(`
+                    <div class="print-footer">
+                        برنامج تقارير الحركة اليومية - برمجه وتطوير / جاود الحيدري
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWin.document.close();
+            printWin.print();
+        }
+        
+        // دالة لمسح جميع البيانات
+        function clearAllMovements() {
+            if (confirm('هل أنت متأكد أنك تريد محو جميع البيانات؟')) {
+                // مسح التخزين المحلي
+                localStorage.clear();
+                
+                // إعادة تعيين الجداول
+                document.querySelector('#saved-movements-table tbody').innerHTML = '';
+                document.querySelector('#detailed-reports-table tbody').innerHTML = '';
+                document.querySelector('#movements-body').innerHTML = '';
+                
+                // إعادة تهيئة الجدول الأساسي
+                const tableBody = document.getElementById('movements-body');
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>1</td>
+                    <td><input type="number" class="amount-input" placeholder="المبلغ" step="0.01" value="1000"></td>
+                    <td>
+                        <select class="currency-select">
+                            <option value="YER">ريال يمني</option>
+                            <option value="SAR">ريال سعودي</option>
+                            <option value="USD">دولار أمريكي</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="description-input" placeholder="البيان" value="مصروفات مكتبية"></td>
+                    <td>
+                        <select class="type-select">
+                            <option value="موظفين">موظفين</option>
+        <option value="معلقات">معلقات</option>
+        <option value="سداد موردين">سداد موردين</option>
+        <option value="مصروفات">مصروفات</option>
+        <option value="المدير">المدير</option>
+        <option value="فواتير مشتريات">فواتير مشتريات</option>
+        <option value="نقديه">نقديه</option>
+        <option value="اخرى">اخرى</option>
+        <option value="مسسلم معلقات سابقه">مسسلم معلقات سابقه</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="exchange-input" value="1" step="0.01" disabled></td>
+                    <td class="total-cell">1000.00</td>
+                    <td class="attachment-cell">
+                        <button class="attachment-btn">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="file" class="attachment-input" accept="image/*,.pdf">
+                        <img class="attachment-preview" style="display:none">
+                    </td>
+                    <td class="action-buttons">
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(newRow);
+                
+                // إضافة أحداث للصف الأول
+                addRowEvents(newRow);
+                
+                // إعادة تعيين الحقول
+                document.getElementById('employee-name').value = '';
+                document.getElementById('employee-note').value = ''; // إعادة تعيين الملاحظات
+                document.getElementById('movement-date').valueAsDate = new Date();
+                document.getElementById('required-amount').value = '';
+                document.getElementById('suspended-total').textContent = '0.00 ريال';
+                document.getElementById('serial-number').textContent = '1';
+                
+                // إعادة تعيين الملخص
+                updateSummary();
+                
+                // إعادة تعيين الرسوم البيانية
+                document.getElementById('analytics-section').innerHTML = `
+                    <div class="input-section">
+                        <h2 style="text-align: center; color: var(--primary); margin: 50px 0;">
+                            <i class="fas fa-database"></i> لا توجد بيانات كافية لتوليد الرسوم البيانية
+                        </h2>
+                        <p style="text-align: center;">يرجى إدخال بيانات الحركات أولاً</p>
+                    </div>
+                `;
+                
+                // إعادة تعيين التخزين المحلي
+                localStorage.setItem('nextId', 1);
+                
+                alert('تم مسح جميع البيانات بنجاح!');
+            }
+        }
+        
+        // البيانات الأولية
+        const sampleData = [
+            {
+                id: 1,
+                employeeName: "أحمد محمد",
+                note: "ملاحظات أولية",
+                date: "2023-10-15",
+                movements: [
+                    { amount: 1000, currency: "YER", description: "مصروفات مكتبية", type: "فواتير مشتريات", exchangeRate: 1, total: 1000 },
+                    { amount: 200, currency: "USD", description: "شراء برمجيات", type: "فواتير مشتريات", exchangeRate: 250, total: 50000 },
+                    { amount: 500, currency: "SAR", description: "مستلزمات طابعة", type: "فواتير مشتريات", exchangeRate: 66.5, total: 33250 }
+                ],
+                totalAmount: 84250,
+                requiredAmount: 84250,
+                difference: 0,
+                status: "match",
+                suspendedTotal: 0
+            },
+            {
+                id: 2,
+                employeeName: "سارة عبد الله",
+                note: "ملاحظات ثانية",
+                date: "2023-10-16",
+                movements: [
+                    { amount: 1500, currency: "YER", description: "وقود سيارة", type: "معلقات", exchangeRate: 1, total: 1500 },
+                    { amount: 300, currency: "USD", description: "أدوات مكتبية", type: "فواتير مشتريات", exchangeRate: 250, total: 75000 }
+                ],
+                totalAmount: 76500,
+                requiredAmount: 76000,
+                difference: 500,
+                status: "excess",
+                suspendedTotal: 0
+            }
+        ];
+        
+        // فلترة حسب التاريخ
+        function filterByDate() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (!start || !end) {
+                alert('يرجى تحديد التاريخين.');
+                return;
+            }
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            const filtered = savedMovements.filter(movement => {
+                const movementDate = new Date(movement.date);
+                return movementDate >= new Date(start) && movementDate <= new Date(end);
+            });
+            loadSavedMovements(filtered);
+        }
+        
+        function setPeriod(type) {
+            const now = new Date();
+            let start, end;
+            if (type === 'month') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+                end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            } else if (type === 'quarter') {
+                const quarter = Math.floor((now.getMonth() + 3) / 3);
+                start = new Date(now.getFullYear(), (quarter - 1) * 3, 1);
+                end = new Date(now.getFullYear(), quarter * 3, 0);
+            } else if (type === 'year') {
+                start = new Date(now.getFullYear(), 0, 1);
+                end = new Date(now.getFullYear(), 11, 31);
+            }
+            document.getElementById('startDate').valueAsDate = start;
+            document.getElementById('endDate').valueAsDate = end;
+            filterByDate();
+        }
+        
+        // الرسوم البيانية للوحة التحكم
+        function generateDashboardCharts() {
+            const savedMovements = JSON.parse(localStorage.getItem("movements")) || [];
+            if (savedMovements.length === 0) return;
+            
+            // إعداد بيانات لتوزيع العملات
+            const currencyData = { YER: 0, SAR: 0, USD: 0 };
+            savedMovements.forEach(movement => {
+                movement.movements.forEach(item => {
+                    currencyData[item.currency] += item.amount;
+                });
+            });
+            
+            // إنشاء مخطط توزيع العملات
+            const currencyCtx = document.getElementById('dashboard-currency-chart').getContext('2d');
+            new Chart(currencyCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['ريال يمني', 'ريال سعودي', 'دولار أمريكي'],
+                    datasets: [{
+                        data: [currencyData.YER, currencyData.SAR, currencyData.USD],
+                        backgroundColor: ['#3498db', '#2ecc71', '#9b59b6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true
+                        }
+                    }
+                }
+            });
+            
+            // إعداد بيانات للنشاط الشهري
+            const monthNames = [
+                'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+            ];
+            
+            const activityData = Array(12).fill(0);
+            savedMovements.forEach(movement => {
+                const month = new Date(movement.date).getMonth();
+                activityData[month]++;
+            });
+            
+            // إنشاء مخطط النشاط الشهري
+            const activityCtx = document.getElementById('dashboard-activity-chart').getContext('2d');
+            new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: monthNames,
+                    datasets: [{
+                        label: 'عدد الحركات',
+                        data: activityData,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointRadius: 4,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    
+        // === فلترة فورية حسب "النوع" في التقارير التفصيلية (لا تمس بقية النظام) ===
+        function attachTypeFilterForDetailed() {
+            const input = document.getElementById('filterTypeDetailed');
+            const table = document.getElementById('detailed-reports-table');
+            if (!input || !table) return;
+            input.addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(tr => {
+                    const typeCell = tr.children[6]; // عمود "النوع" حسب ترتيب الجدول
+                    const text = (typeCell ? typeCell.textContent : '').toLowerCase();
+                    tr.style.display = (!q || text.includes(q)) ? '' : 'none';
+                });
+                // تحديث الإجمالي المفلتر إن وجد
+                const totalSpan = document.getElementById('filtered-total');
+                if (totalSpan) {
+                    let sum = 0;
+                    const totalIndex = 8; // عمود "الاجمالي بالريال اليمني" حسب الترتيب
+                    rows.forEach(tr => {
+                        if (tr.style.display !== 'none') {
+                            const cell = tr.children[totalIndex];
+                            if (cell) {
+                                const num = parseFloat(cell.textContent.replace(/[,\s]/g, '')) || 0;
+                                sum += num;
+                            }
+                        }
+                    });
+                    totalSpan.textContent = sum.toFixed(2);
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', attachTypeFilterForDetailed);
+        
+        // === دالة لطباعة البيانات المفلترة في قسم التقارير ===
+        function printFilteredMovements() {
+            // الحصول على الجدول المفلتر
+            const table = document.getElementById('saved-movements-table');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            if (rows.length === 0) {
+                alert('لا توجد بيانات للطباعة');
+                return;
+            }
+            
+            // إنشاء نافذة طباعة
+            const printWin = window.open('', '_blank', 'width=900,height=700');
+            printWin.document.write(`
+                <html>
+                <head>
+                    <title>طباعة الحركات المفلترة</title>
+                    <style>
+                        body { font-family: 'Tajawal', sans-serif; direction: rtl; margin: 30px; }
+                        h2 { text-align: center; color: #007bff; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+                        th { background-color: #f2f2f2; }
+                        .print-header { text-align: center; margin-bottom: 20px; }
+                        .print-footer { text-align: center; margin-top: 40px; font-style: italic; color: #666; }
+                    
+.app-container.collapsed .sidebar {
+    width: 60px;
+}
+.app-container.collapsed .main-content {
+    margin-right: 60px;
+}
+.app-container.collapsed .sidebar-header h2 span,
+.app-container.collapsed .dept-item span,
+.app-container.collapsed .user-info {
+    display: none;
+}
+
+</style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h2>كشف الحركات المالية المفلترة</h2>
+                        <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-YE')}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم التسلسل</th>
+                                <th>اسم الموظف</th>
+                                <th>التاريخ</th>
+                                <th>الملاحظات</th>
+                                <th>المبلغ المطلوب منه</th>
+                                <th>الإجمالي بالريال اليمني</th>
+                                <th>إجمالي المسلم من المعلقات</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `);
+            
+            // إضافة الصفوف
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                printWin.document.write(`
+                    <tr>
+                        <td>${cells[0].textContent}</td>
+                        <td>${cells[1].textContent}</td>
+                        <td>${cells[2].textContent}</td>
+                        <td>${cells[3].textContent}</td>
+                        <td>${cells[4].textContent}</td>
+                        <td>${cells[5].textContent}</td>
+                        <td>${cells[6].textContent}</td>
+                        <td>${cells[7].innerHTML}</td>
+                    </tr>
+                `);
+            });
+            
+            printWin.document.write(`
+                        </tbody>
+                    </table>
+                    <div class="print-footer">
+                        <p>برنامج تقارير الحركة اليومية - برمجة وتطوير / جاود الحيدري</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.print();
+        }
+        
+        // === دالة لتصدير جميع الحركات إلى PDF ===
+        function exportAllToPDF() {
+            const savedMovements = JSON.parse(localStorage.getItem('movements')) || [];
+            if (savedMovements.length === 0) {
+                alert('لا توجد حركات مسجلة للتصدير');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // عنوان التقرير
+            doc.setFontSize(16);
+            doc.text('تقرير جميع الحركات', 105, 15, null, null, 'center');
+            doc.setFontSize(12);
+            doc.text(`تاريخ التصدير: ${new Date().toLocaleDateString('ar-YE')}`, 15, 25);
+            
+            // إعداد الجدول
+            const headers = ['الرقم', 'الموظف', 'التاريخ', 'الملاحظات', 'المطلوب', 'الإجمالي', 'إجمالي المسلم', 'الحالة', 'الفرق'];
+            const data = [];
+            
+            savedMovements.forEach((movement, index) => {
+                const status = movement.status === 'match' ? 'مطابق' : 
+                              movement.status === 'excess' ? 'زيادة' : 'نقص';
+                data.push([
+                    movement.id,
+                    movement.employeeName,
+                    movement.date,
+                    movement.note || "—", // عرض الملاحظات
+                    movement.requiredAmount.toFixed(2),
+                    movement.totalAmount.toFixed(2),
+                    movement.suspendedTotal.toFixed(2),
+                    status,
+                    movement.difference.toFixed(2)
+                ]);
+            });
+            
+            // إنشاء الجدول
+            doc.autoTable({
+                startY: 30,
+                head: [headers],
+                body: data,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [44, 62, 80],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                styles: { 
+                    font: 'Tajawal',
+                    fontStyle: 'normal',
+                    textColor: [0, 0, 0],
+                    cellPadding: 3,
+                    fontSize: 10
+                },
+                margin: { right: 10, left: 10 }
+            });
+            
+            // تذييل الصفحة
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.text('برنامج تقارير الحركة اليومية - برمجة وتطوير / جاود الحيدري', 105, doc.internal.pageSize.height - 10, null, null, 'center');
+            }
+            
+            // حفظ الملف
+            doc.save('جميع_الحركات.pdf');
+        }
+        
+        document.getElementById("print-input-table-btn").addEventListener("click", function () {
+            const employeeName = document.getElementById("employee-name").value || "غير محدد";
+            const note = document.getElementById("employee-note").value || "—"; // الحصول على الملاحظات
+            const movementDate = document.getElementById("movement-date").value || "غير محدد";
+            const serialNumber = document.getElementById("serial-number").textContent || "1";
+            const totalAmount = document.getElementById("total-amount").textContent || "0.00 ريال";
+            const requiredAmount = document.getElementById("required-amount").value || "0.00";
+            const differenceAmount = document.getElementById("difference-amount").textContent || "0.00 ريال";
+            const status = document.getElementById("status-box").textContent || "";
+            const suspendedTotal = document.getElementById("suspended-total").textContent || "0.00 ريال";
+
+            let html = `
+            <div class="print-header">
+                <h2>تقرير حركة الموظف</h2>
+                <p>اسم الموظف: <strong>${employeeName}</strong></p>
+                <p>الملاحظات: <strong>${note}</strong></p> <!-- عرض الملاحظات هنا -->
+                <p>تاريخ الحركة: <strong>${movementDate}</strong></p>
+                <p>رقم التسلسل: <strong>${serialNumber}</strong></p>
+            </div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th>المبلغ</th>
+                        <th>العملة</th>
+                        <th>البيان</th>
+                        <th>النوع</th>
+                        <th>سعر الصرف</th>
+                        <th>الإجمالي بالريال اليمني</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            const rows = document.querySelectorAll("#movements-body tr");
+            rows.forEach(row => {
+                const amount = row.querySelector(".amount-input").value || "0";
+                const currency = row.querySelector(".currency-select").value;
+                const desc = row.querySelector(".description-input").value || "";
+                const type = row.querySelector(".type-select")?.value || "";
+                const exchange = row.querySelector(".exchange-input").value || "";
+                const total = row.querySelector(".total-cell").textContent || "0";
+
+                html += `
+                <tr>
+                    <td>${amount}</td>
+                    <td>${currency}</td>
+                    <td>${desc}</td>
+                    <td>${type}</td>
+                    <td>${exchange}</td>
+                    <td>${total}</td>
+                </tr>`;
+            });
+
+            html += `</tbody></table>
+
+            
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>إجمالي الحركات</th>
+                    <th>المبلغ المطلوب</th>
+                    <th>المبلغ الفارق</th>
+                    <th>حالة الفارق</th>
+                    <th>إجمالي المسلم من المعلقات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>${totalAmount}</td>
+                    <td>${requiredAmount} ريال</td>
+                    <td>${differenceAmount}</td>
+                    <td>${status}</td>
+                    <td>${suspendedTotal}</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+            <div class="print-footer">برمجة وتطوير / جاود الحيدري</div>`;
+
+            const printContent = document.getElementById("print-content");
+            printContent.innerHTML = html;
+
+            document.getElementById("print-window").style.display = "block";
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        });
+
+document.getElementById("toggle-sidebar").addEventListener("click", function () {
+    document.querySelector(".app-container").classList.toggle("collapsed");
+});
+
+
+// إنشاء نسخة احتياطية من جميع بيانات LocalStorage
+function manualBackup() {
+    const data = JSON.stringify(localStorage);
+    const blob = new Blob([data], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "backup.json";
+    link.click();
+}
+
+// استعادة البيانات من نسخة JSON
+function manualRestore(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const restoredData = JSON.parse(e.target.result);
+            Object.keys(restoredData).forEach(key => {
+                localStorage.setItem(key, restoredData[key]);
+            });
+            alert("✅ تم استعادة البيانات بنجاح!");
+            location.reload();
+        } catch (err) {
+            alert("❌ فشل في الاستعادة. تأكد من أن الملف صالح.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+// نسخ احتياطي تلقائي عند فتح المتصفح
+window.addEventListener("load", function() {
+    const data = JSON.stringify(localStorage);
+    const blob = new Blob([data], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "auto-backup-" + new Date().toISOString().slice(0,19).replace(/:/g, "-") + ".json";
+    link.click();
+});
+
+function manualBackup() {
+    const data = JSON.stringify(localStorage);
+    const blob = new Blob([data], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "backup.json";
+    link.click();
+}
+
+function manualRestore(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const restoredData = JSON.parse(e.target.result);
+            Object.keys(restoredData).forEach(key => {
+                localStorage.setItem(key, restoredData[key]);
+            });
+            alert("✅ تم استعادة البيانات بنجاح!");
+            location.reload();
+        } catch (err) {
+            alert("❌ فشل في الاستعادة. تأكد من أن الملف صالح.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function manualBackup() {
+    const data = JSON.stringify(localStorage);
+    const blob = new Blob([data], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "backup.json";
+    link.click();
+}
+
+function manualRestore(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const restoredData = JSON.parse(e.target.result);
+            Object.keys(restoredData).forEach(key => {
+                localStorage.setItem(key, restoredData[key]);
+            });
+            alert("✅ تم استعادة البيانات بنجاح!");
+            location.reload();
+        } catch (err) {
+            alert("❌ فشل في الاستعادة. تأكد من أن الملف صالح.");
+        }
+    };
+    reader.readAsText(file);
+}
+
+// نسخة تلقائية عند فتح المتصفح
+window.addEventListener("load", () => {
+    const data = JSON.stringify(localStorage);
+    const blob = new Blob([data], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "backup_auto.json";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+<div id="backup-section" style="max-width:600px;margin:50px auto;text-align:center;padding:20px;background-color:#f9f9f9;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);"><h2>إدارة النسخ الاحتياطي</h2><p>قم بإنشاء نسخة احتياطية للبيانات أو استعادتها، أو تشغيل النسخ التلقائي.</p><button onclick="manualBackup()" style="margin: 10px; background-color: green; color: white; padding: 10px 20px; border: none; border-radius: 5px;">💾 إنشاء نسخة احتياطية</button><input id="manualRestoreInput" onchange="manualRestore(event)" style="display:none" type="file"/><button onclick="document.getElementById('manualRestoreInput').click()" style="margin: 10px; background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px;">📂 استعادة نسخة</button><button onclick="manualBackup()" style="margin: 10px; background-color: #555; color: white; padding: 10px 20px; border: none; border-radius: 5px;">🕓 نسخ احتياطي تلقائي عند فتح المتصفح</button></div><div id="monthly-summaries" style="max-width: 1000px; margin: 0 auto;"><h2 style="margin: 30px 0; color: var(--primary);">📆 ملخص الحركات الشهري حسب النوع والبيان والعمله</h2>
+<div style="margin: 20px 0;">
+<label style="font-weight: bold;">📅 اختر الشهر:</label>
+<select class="type-select" id="month-selector" style="width: 300px; margin-right: 10px;">
+<option value="">عرض الجميع</option>
+</select>
+</div>
+<div style="margin: 20px 0;">
+<button onclick="printVisibleMonth()" style="padding: 8px 16px; background-color: #2980b9; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        🖨️ طباعة الملخص الظاهر
+    </button>
+</div>
+</div><script>
+function groupByMonthAndSummarize() {
+    const data = JSON.parse(localStorage.getItem("movements") || "[]");
+    const container = document.getElementById("monthly-summaries");
+    const monthSelect = document.getElementById("month-selector");
+
+    const monthGroups = {};
+
+    data.forEach(entry => {
+        const date = new Date(entry.date);
+        const monthKey = date.toLocaleString('ar-EG', { month: 'long', year: 'numeric' });
+
+        if (!monthGroups[monthKey]) monthGroups[monthKey] = [];
+
+        monthGroups[monthKey].push(...entry.movements.map(m => ({
+            ...m,
+            total: parseFloat(m.total) || 0
+        })));
+    });
+
+    const sortedMonths = Object.keys(monthGroups).sort((a, b) => new Date("1 " + a) - new Date("1 " + b));
+    sortedMonths.forEach(month => {
+        const option = document.createElement("option");
+        option.value = month;
+        option.textContent = month;
+        monthSelect.appendChild(option);
+    });
+
+    function renderMonth(selectedMonth) {
+        document.querySelectorAll(".month-summary-block").forEach(e => e.remove());
+
+        for (const [month, items] of Object.entries(monthGroups)) {
+            if (selectedMonth && selectedMonth !== month) continue;
+
+            const typeStats = {};
+            const descStats = {};
+            const currencyStats = {};
+
+            items.forEach(item => {
+                const type = item.type || "غير محدد";
+                const desc = item.description || "غير محدد";
+                const curr = item.currency || "غير محددة";
+                const total = item.total;
+
+                if (!typeStats[type]) typeStats[type] = { count: 0, total: 0 };
+                typeStats[type].count += 1;
+                typeStats[type].total += total;
+
+                if (!descStats[desc]) descStats[desc] = { count: 0, total: 0 };
+                descStats[desc].count += 1;
+                descStats[desc].total += total;
+
+                if (!currencyStats[curr]) currencyStats[curr] = { count: 0, total: 0 };
+                currencyStats[curr].count += 1;
+                currencyStats[curr].total += total;
+            });
+
+            const monthSection = document.createElement("div");
+            monthSection.className = "month-summary-block";
+            monthSection.style.marginBottom = "40px";
+            monthSection.innerHTML = `
+                <h3 style="color: #2980b9; margin-top: 25px;">📅 ${month}</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 280px;">
+                        <h4 style="color: #2c3e50;">🔸 حسب النوع</h4>
+                        <table class="movements-table" style="margin-bottom: 20px;">
+                            <thead><tr><th>النوع</th><th>عدد</th><th>الإجمالي</th></tr></thead>
+                            <tbody>
+                                ${Object.entries(typeStats).map(([t, d]) => `
+                                    <tr><td>${t}</td><td>${d.count}</td><td>${d.total.toFixed(2)} ريال</td></tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="flex: 1; min-width: 280px;">
+                        <h4 style="color: #2c3e50;">🔹 حسب البيان</h4>
+                        <table class="movements-table" style="margin-bottom: 20px;">
+                            <thead><tr><th>البيان</th><th>عدد</th><th>الإجمالي</th></tr></thead>
+                            <tbody>
+                                ${Object.entries(descStats).map(([t, d]) => `
+                                    <tr><td>${t}</td><td>${d.count}</td><td>${d.total.toFixed(2)} ريال</td></tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="flex: 1; min-width: 280px;">
+                        <h4 style="color: #2c3e50;">💱 حسب العملة</h4>
+                        <table class="movements-table">
+                            <thead><tr><th>العملة</th><th>عدد</th><th>الإجمالي</th></tr></thead>
+                            <tbody>
+                                ${Object.entries(currencyStats).map(([t, d]) => `
+                                    <tr><td>${t}</td><td>${d.count}</td><td>${d.total.toFixed(2)} ريال</td></tr>
+                                `).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            container.appendChild(monthSection);
+        }
+    }
+
+    renderMonth("");
+    monthSelect.addEventListener("change", () => {
+        renderMonth(monthSelect.value);
+    });
+}
+
+function printVisibleMonth() {
+    const summaries = document.querySelectorAll(".month-summary-block");
+    summaries.forEach(el => el.style.display = "none");
+
+    const selectedMonth = document.getElementById("month-selector").value;
+    let printed = false;
+
+    summaries.forEach(el => {
+        if (!selectedMonth || el.querySelector("h3").textContent.includes(selectedMonth)) {
+            el.style.display = "block";
+            printed = true;
+        }
+    });
+
+    if (printed) {
+        window.print();
+    } else {
+        alert("يرجى اختيار شهر لطباعته.");
+    }
+
+    setTimeout(() => {
+        summaries.forEach(el => el.style.display = "block");
+    }, 1000);
+}
+
+window.addEventListener("load", groupByMonthAndSummarize);
+</script></body>
+</html>
