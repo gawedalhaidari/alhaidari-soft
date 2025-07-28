@@ -1,0 +1,33 @@
+{
+  "name": "alhaidari-soft",
+  "version": "1.0.0",
+  "description": "نظام الحيدريسوفت لإدارة الحركات اليومية",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "author": "جاود الحيدري",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^29.4.6",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.alhaidari.soft",
+    "productName": "اAlhaidariSoft",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true
+    }
+  }
+}
